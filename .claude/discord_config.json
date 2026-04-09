@@ -1,0 +1,8 @@
+{
+  "allowed_user_ids": [],
+  "guild_name": "arigato-mr-roboto",
+  "channel_name": "agent-escalations",
+  "trigger_channel_name": "trigger-agents",
+  "notes": "Empty allowed_user_ids = any server member may send RESUME: or RUN: commands"
+}
+

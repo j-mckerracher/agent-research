@@ -1,0 +1,28 @@
+2026-04-08 14:04:16 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-08 14:04:16 [trigger] Guild:         Agent-Escalations
+2026-04-08 14:04:16 [trigger] Channel:       #trigger-agents
+2026-04-08 14:04:16 [trigger] Poll interval: 10s
+2026-04-08 14:04:16 [trigger] Resolving Discord guild and channel…
+2026-04-08 14:04:16 [trigger] Guild ID: 1491462454843019304
+2026-04-08 14:04:17 [trigger] #trigger-agents channel ID: 1491495402690842816
+2026-04-08 14:04:17 [trigger] Polling every 10s. Post 'RUN: WI-XXXX claude|copilot' in #trigger-agents to start a workflow.
+2026-04-08 14:05:42 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-08 14:05:42 [trigger] Guild:         Agent-Escalations
+2026-04-08 14:05:42 [trigger] Channel:       #trigger-agents
+2026-04-08 14:05:42 [trigger] Poll interval: 10s
+2026-04-08 14:05:42 [trigger] Resolving Discord guild and channel…
+2026-04-08 14:05:43 [trigger] Guild ID: 1491462454843019304
+2026-04-08 14:05:43 [trigger] #trigger-agents channel ID: 1491495402690842816
+2026-04-08 14:05:43 [trigger] Polling every 10s. Post 'RUN: WI-XXXX claude|copilot' in #trigger-agents to start a workflow.
+2026-04-08 14:05:44 [trigger] Seeded last_seen_id=1491529258097447023 (skipping existing history)
+2026-04-08 14:10:22 [trigger] Trigger received from Josh M: RUN: WI-1234  backend=claude  repo=(default)
+2026-04-08 14:10:22 [trigger] Spawning: /opt/homebrew/opt/python@3.14/bin/python3.14 /Users/mckerracher.joshua/Code/mcs-products-mono-ui/.claude/agent-runner/run_headless.py --change-id WI-1234 --repo /Users/mckerracher.joshua/Code/mcs-products-mono-ui --backend claude --output-json /var/folders/0v/gssk9rmx4c1465sfxcz668d00000gr/T/run-WI-1234-hhj51ndm.json
+2026-04-08 14:10:22 [trigger] Trigger received from Josh M: RUN: WI-1234  backend=claude  repo=(default)
+2026-04-08 14:10:23 [trigger] Run WI-1234 finished: exit_code=2  elapsed=0.3s
+2026-04-08 14:10:23 [trigger] Spawning: /opt/homebrew/opt/python@3.14/bin/python3.14 /Users/mckerracher.joshua/Code/Mine/agent-runner/run_headless.py --change-id WI-1234 --repo /Users/mckerracher.joshua/Code/mcs-products-mono-ui --backend claude --output-json /var/folders/0v/gssk9rmx4c1465sfxcz668d00000gr/T/run-WI-1234-s0ttl1eo.json
+2026-04-08 14:10:24 [trigger] Run WI-1234 finished: exit_code=2  elapsed=0.5s
+2026-04-08 14:11:30 [trigger] Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: connection timeout
+2026-04-08 14:59:37 [trigger] Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
+2026-04-08 14:59:58 [trigger] Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
+2026-04-08 17:54:45 [trigger] Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
+2026-04-08 20:02:20 [trigger] Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → network error: _ssl.c:1063: The handshake operation timed out
