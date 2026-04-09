@@ -13,3 +13,22 @@
 [trigger] 20:59:58 Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
 [trigger] 23:54:45 Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
 [trigger] 02:02:20 Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → network error: _ssl.c:1063: The handshake operation timed out
+[trigger] 11:08:32 Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1491530670512803890 → network error: [Errno 54] Connection reset by peer
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>
+ERROR: DISCORD_BOT_TOKEN is not set.
+  export DISCORD_BOT_TOKEN=<your-bot-token>

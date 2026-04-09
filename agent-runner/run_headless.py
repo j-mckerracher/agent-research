@@ -37,6 +37,7 @@ from run import (  # noqa: E402
     WORKFLOW_ASSETS_ROOT,
     WorkflowConfig,
     WorkflowError,
+    create_pull_request,
     detect_available_backends,
     fetch_ado_context,
     format_summary,
@@ -399,6 +400,22 @@ def main(argv: list[str] | None = None) -> int:
             "OK" if overall == "pass" else "ERROR",
             f"Workflow status: {overall.upper()}",
         )
+
+        if overall == "pass" and worktree_info:
+            try:
+                org_url, project = resolve_ado_defaults(main_repo_root)
+                create_pull_request(
+                    main_repo_root,
+                    source_branch=worktree_info.branch,
+                    base_ref=worktree_info.base_ref,
+                    change_id=args.change_id,
+                    org_url=org_url,
+                    project=project,
+                    worktree_path=worktree_info.path,
+                )
+            except (WorkflowError, subprocess.SubprocessError, OSError) as exc:
+                log("WARN", f"PR creation failed (non-fatal): {exc}")
+
         return 0 if overall == "pass" else 1
 
     finally:

@@ -67,13 +67,16 @@ This agent requires the following skills to be loaded. These skills define manda
 | **artifact-io**            | Artifact root conventions, CHANGE-ID path construction      |
 | **code-comment-standards** | Work-item citation rules for AC/story-linked code comments  |
 
-### Conditional Skill
+### Conditional Skills
 
-| Skill                    | Purpose                                                                | Loaded When                     |
-| ------------------------ | ---------------------------------------------------------------------- | ------------------------------- |
-| **ov** (open-viking-cli) | OpenViking CLI commands for semantic search, ingestion, tiered loading | `knowledge_mode = "openviking"` |
+| Skill                        | Purpose                                                                | Loaded When                     |
+| ---------------------------- | ---------------------------------------------------------------------- | ------------------------------- |
+| **ov** (open-viking-cli)     | OpenViking CLI commands for semantic search, ingestion, tiered loading | `knowledge_mode = "openviking"` |
+| **information-explorer**     | Protocol for delegating focused exploration to the Information Explorer agent | `confidence = partial` on any knowledge query |
 
 If the `ov` skill is not loaded in the runtime, this does not block the agent. The detection sequence handles this gracefully — the agent will operate in `flat-file` mode.
+
+When `confidence = partial`, load and follow the **information-explorer** skill to invoke the Information Explorer agent.
 
 ## Execution Discipline
 
@@ -356,15 +359,13 @@ confidence: 'full|partial|none'
 
 5. **If `confidence: full`**: Return the final answer.
 
-6. **If `confidence: partial`**: Invoke the Information Explorer Agent, wait for its response, then complete the answer.
+6. **If `confidence: partial`**: Use the **information-explorer** skill to invoke the Information Explorer Agent, wait for its response, then complete the answer.
    - Calling agents MUST NOT explore to answer knowledge queries.
    - Only the librarian invokes the explorer for knowledge exploration.
    - Do not finalize the answer while explorer results are pending.
-   - Set `requires_exploration: true` and include `exploration_request` with:
-     - `action: "invoke_information_explorer"`
+   - Follow the **information-explorer** skill protocol, passing:
      - `hint` describing what to trace or locate
      - `knowledge_mode: "openviking"` (so the explorer knows which backend is active)
-     - `wait_policy: "block_until_explorer_response"`
      - `report_format: "Explorer returns: file paths + call chain summary + citations"`
        **If `confidence: none`**: The question cannot be answered even with exploration. Skip explorer invocation and proceed directly to step 8.
 
@@ -442,15 +443,13 @@ confidence: 'full|partial|none'
 
 5. **If `confidence: full`**: Return the final answer.
 
-6. **If `confidence: partial`**: Invoke the Information Explorer Agent, wait for its response, then complete the answer.
+6. **If `confidence: partial`**: Use the **information-explorer** skill to invoke the Information Explorer Agent, wait for its response, then complete the answer.
    - Calling agents MUST NOT explore to answer knowledge queries.
    - Only the librarian invokes the explorer for knowledge exploration.
    - Do not finalize the answer while explorer results are pending.
-   - Set `requires_exploration: true` and include `exploration_request` with:
-     - `action: "invoke_information_explorer"`
+   - Follow the **information-explorer** skill protocol, passing:
      - `hint` describing what to trace or locate
      - `knowledge_mode: "flat-file"` (so the explorer knows which backend is active)
-     - `wait_policy: "block_until_explorer_response"`
      - `report_format: "Explorer returns: file paths + call chain summary + citations"`
        **If `confidence: none`**: The question cannot be answered even with exploration. Skip explorer invocation and proceed directly to step 8.
 

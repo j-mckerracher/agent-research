@@ -32,6 +32,7 @@ This agent requires the following skills to be loaded. These skills define manda
 | **lessons-capture**          | Scoped lessons retrieval + post-correction capture protocol |
 | **artifact-io**              | Artifact root conventions, CHANGE-ID path construction      |
 | **code-comment-standards**   | Work-item citation rules for AC/story-linked code comments  |
+| **azure-devops-cli**         | Update ADO work item state and add progress comments        |
 
 ## Core Responsibilities
 
@@ -80,12 +81,26 @@ Write logs to `{CHANGE-ID}/execution/{UOW-ID}/logs/`.
 This is the standard implementation loop. It runs on every attempt (including the first).
 
 1. Read the UoW specification and Definition of Done from `{CHANGE-ID}/execution/{UOW-ID}/uow_spec.yaml`
-2. Query the Reference Librarian for patterns, prior learnings, and scoped applicable lessons
-3. Check the `### Self-Evolved Rules` and `### Optimizer-Injected Rules` sub-sections at the bottom of this file for any evolved heuristics that apply to this task
-4. Implement code changes following the Documentation-First Requirement and Scope Control Guidelines
-5. Write Cypress component tests + test harnesses per Testing Requirements
-6. Run `nx component-test` and `nx build` to verify
-7. Generate `impl_report.yaml` with full `metacognitive_context`
+2. **Update ADO work item state to `Active`** using the **azure-devops-cli** skill:
+   ```bash
+   az boards work-item update --id {work_item_id} --state "Active" \
+     --discussion "Agent starting implementation of UoW {UOW-ID}: {uow_title}"
+   ```
+   Extract `{work_item_id}` by stripping the `WI-` prefix from the CHANGE-ID. Log a warning and continue if this command fails — do not block implementation.
+3. Query the Reference Librarian for patterns, prior learnings, and scoped applicable lessons
+4. Check the `### Self-Evolved Rules` and `### Optimizer-Injected Rules` sub-sections at the bottom of this file for any evolved heuristics that apply to this task
+5. Implement code changes following the Documentation-First Requirement and Scope Control Guidelines
+6. Write Cypress component tests + test harnesses per Testing Requirements
+7. Run `nx component-test` and `nx build` to verify
+8. Generate `impl_report.yaml` with full `metacognitive_context`
+9. **Add ADO work item comment** using the **azure-devops-cli** skill:
+   - If `status: complete`: add a comment with the `implementation_summary` from the report
+   - If `status: blocked`: add a comment describing the blocker and `replan_request.reason`
+   ```bash
+   az boards work-item update --id {work_item_id} \
+     --discussion "{comment_text}"
+   ```
+   Log a warning and continue if this command fails.
 
 ### Phase 2: Metacognitive Evaluation (Meta Agent)
 

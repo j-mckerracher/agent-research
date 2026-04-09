@@ -59,6 +59,7 @@ OUTPUT_FLUSH_SECONDS = 30
 DISCORD_MAX_CHARS = 1900
 
 RUN_PREFIX = "RUN:"
+REPO_PREFIX = "REPO:"
 VALID_BACKENDS = ("claude", "copilot")
 
 # ---------------------------------------------------------------------------
@@ -230,6 +231,28 @@ def parse_trigger(content: str) -> tuple[str, str, str | None] | None:
     return change_id, backend, repo_path
 
 
+def parse_repo_reply(content: str) -> tuple[str, str] | None:
+    """Parse a REPO: reply.
+
+    Expected format:
+        REPO: WI-XXXX /absolute/path/to/repo
+
+    Returns (normalised_change_id, repo_path) or None if malformed.
+    """
+    stripped = content.strip()
+    if not stripped.upper().startswith(REPO_PREFIX.upper()):
+        return None
+    body = stripped[len(REPO_PREFIX):].strip()
+    parts = body.split(None, 1)
+    if len(parts) != 2:
+        return None
+    raw_change_id, repo_path = parts
+    change_id = raw_change_id.upper()
+    if not change_id.startswith("WI-"):
+        change_id = f"WI-{change_id}"
+    return change_id, repo_path.strip()
+
+
 # ---------------------------------------------------------------------------
 # Workflow runner (subprocess)
 # ---------------------------------------------------------------------------
@@ -247,8 +270,7 @@ def _runner_script_path() -> Path:
 
 def run_workflow_subprocess(
     change_id: str,
-    repo_path: str | None,
-    default_repo: str,
+    repo_path: str,
     backend: str,
     output_json: Path,
     line_queue: "queue.Queue[str | None]",
@@ -259,7 +281,7 @@ def run_workflow_subprocess(
     """
     script = _runner_script_path()
     cmd = [sys.executable, str(script), "--change-id", change_id]
-    cmd += ["--repo", repo_path or default_repo]
+    cmd += ["--repo", repo_path]
     cmd += ["--backend", backend]
     cmd += ["--output-json", str(output_json)]
 
@@ -402,6 +424,14 @@ class ActiveRun:
         self.started_at = time.monotonic()
 
 
+class PendingRun:
+    """A trigger that was received but is waiting for a repo path."""
+    def __init__(self, change_id: str, backend: str, triggered_by: str) -> None:
+        self.change_id = change_id
+        self.backend = backend
+        self.triggered_by = triggered_by
+
+
 # ---------------------------------------------------------------------------
 # Main listener loop
 # ---------------------------------------------------------------------------
@@ -412,7 +442,7 @@ def run_listener(
     guild_name: str,
     trigger_channel_name: str,
     poll_seconds: int,
-    default_repo: str,
+    default_repo: str | None,
 ) -> None:
     _log("Resolving Discord guild and channel…")
     guild_id = get_guild_id(token, guild_name)
@@ -421,11 +451,12 @@ def run_listener(
     _log(f"#{trigger_channel_name} channel ID: {trigger_channel_id}")
     _log(
         f"Polling every {poll_seconds}s. "
-        f"Post 'RUN: WI-XXXX claude|copilot' in #{trigger_channel_name} to start a workflow."
+        f"Post 'RUN: WI-XXXX claude|copilot [/repo/path]' in #{trigger_channel_name} to start a workflow."
     )
 
     last_seen_id: str | None = None
-    active_runs: dict[str, ActiveRun] = {}  # change_id → ActiveRun
+    active_runs: dict[str, ActiveRun] = {}    # change_id → ActiveRun
+    pending_runs: dict[str, PendingRun] = {}  # change_id → PendingRun (awaiting repo path)
 
     # Seed last_seen_id with the most recent message so we don't re-process history
     seed_msgs = get_channel_messages(token, trigger_channel_id, after_id=None)
@@ -455,6 +486,89 @@ def run_listener(
             if is_bot:
                 continue
 
+            # ---------------------------------------------------------------
+            # REPO: reply — fulfil a pending run that was waiting for a path
+            # ---------------------------------------------------------------
+            if content.strip().upper().startswith(REPO_PREFIX.upper()):
+                parsed_repo = parse_repo_reply(content)
+                if not parsed_repo:
+                    try:
+                        post_message(
+                            token, trigger_channel_id,
+                            f"⚠️ **Invalid REPO: format** from {username}.\n"
+                            f"Use: `REPO: WI-XXXX /absolute/path/to/repo`",
+                        )
+                    except DiscordAPIError:
+                        pass
+                    continue
+
+                repo_change_id, repo_path = parsed_repo
+
+                if repo_change_id not in pending_runs:
+                    try:
+                        post_message(
+                            token, trigger_channel_id,
+                            f"⚠️ No pending run found for `{repo_change_id}`. "
+                            f"Send a `RUN:` trigger first.",
+                        )
+                    except DiscordAPIError:
+                        pass
+                    continue
+
+                if not Path(repo_path).is_dir():
+                    try:
+                        pending = pending_runs[repo_change_id]
+                        post_message(
+                            token, trigger_channel_id,
+                            f"⚠️ **Path does not exist:** `{repo_path}`\n"
+                            f"Please re-send with a valid path:\n"
+                            f"`REPO: {repo_change_id} /absolute/path/to/repo`",
+                        )
+                    except DiscordAPIError:
+                        pass
+                    continue
+
+                pending = pending_runs.pop(repo_change_id)
+                _log(
+                    f"REPO: reply from {username} for {repo_change_id}: path={repo_path}"
+                )
+
+                # Now start the workflow with the provided path
+                try:
+                    ack_content = (
+                        f"🤖 **Workflow triggered by {pending.triggered_by}**\n"
+                        f"**Change:** `{repo_change_id}`\n"
+                        f"**Backend:** `{pending.backend}`\n"
+                        f"**Repo:** `{repo_path}`\n"
+                        f"Starting workflow… updates will appear below."
+                    )
+                    ack_msg = post_message(token, trigger_channel_id, ack_content)
+                    thread = create_thread(
+                        token,
+                        trigger_channel_id,
+                        str(ack_msg["id"]),
+                        f"run-{repo_change_id}",
+                    )
+                    thread_id = str(thread["id"])
+                except DiscordAPIError as exc:
+                    _log(f"Could not create thread for {repo_change_id}: {exc}")
+                    pending_runs[repo_change_id] = pending  # put back so user can retry
+                    continue
+
+                active_runs[repo_change_id] = ActiveRun(repo_change_id, thread_id)
+                _start_run_thread(
+                    token=token,
+                    change_id=repo_change_id,
+                    repo_path=repo_path,
+                    backend=pending.backend,
+                    thread_id=thread_id,
+                    active_runs=active_runs,
+                )
+                continue
+
+            # ---------------------------------------------------------------
+            # RUN: trigger
+            # ---------------------------------------------------------------
             parsed = parse_trigger(content)
             if not parsed:
                 continue
@@ -490,9 +604,42 @@ def run_listener(
                     pass
                 continue
 
+            if change_id in pending_runs:
+                _log(f"Ignoring RUN: {change_id} — already waiting for repo path")
+                try:
+                    post_message(
+                        token, trigger_channel_id,
+                        f"⚠️ `{change_id}` is already waiting for a repo path.\n"
+                        f"Reply with: `REPO: {change_id} /absolute/path/to/repo`",
+                    )
+                except DiscordAPIError:
+                    pass
+                continue
+
+            # Resolve effective repo path
+            effective_repo = repo_override or default_repo
+
+            if not effective_repo:
+                # No repo available — prompt user for it
+                _log(
+                    f"Trigger from {username}: RUN: {change_id} backend={backend} — repo required, prompting"
+                )
+                try:
+                    post_message(
+                        token, trigger_channel_id,
+                        f"⏳ **Repo path required for `{change_id}`** (triggered by {username})\n"
+                        f"Please reply with:\n"
+                        f"`REPO: {change_id} /absolute/path/to/repo`",
+                    )
+                except DiscordAPIError as exc:
+                    _log(f"Could not post repo prompt for {change_id}: {exc}")
+                    continue
+                pending_runs[change_id] = PendingRun(change_id, backend, username)
+                continue
+
             _log(
                 f"Trigger received from {username}: "
-                f"RUN: {change_id}  backend={backend}  repo={repo_override or '(default)'}"
+                f"RUN: {change_id}  backend={backend}  repo={effective_repo}"
             )
 
             # Post an acknowledgement message and create a thread for this run
@@ -501,7 +648,7 @@ def run_listener(
                     f"🤖 **Workflow triggered by {username}**\n"
                     f"**Change:** `{change_id}`\n"
                     f"**Backend:** `{backend}`\n"
-                    f"**Repo:** `{repo_override or default_repo}`\n"
+                    f"**Repo:** `{effective_repo}`\n"
                     f"Starting workflow… updates will appear below."
                 )
                 ack_msg = post_message(token, trigger_channel_id, ack_content)
@@ -522,8 +669,7 @@ def run_listener(
             _start_run_thread(
                 token=token,
                 change_id=change_id,
-                repo_override=repo_override,
-                default_repo=default_repo,
+                repo_path=effective_repo,
                 backend=backend,
                 thread_id=thread_id,
                 active_runs=active_runs,
@@ -537,8 +683,7 @@ def _start_run_thread(
     *,
     token: str,
     change_id: str,
-    repo_override: str | None,
-    default_repo: str,
+    repo_path: str,
     backend: str,
     thread_id: str,
     active_runs: dict[str, ActiveRun],
@@ -561,8 +706,7 @@ def _start_run_thread(
         def _subprocess_thread() -> None:
             exit_code_holder[0] = run_workflow_subprocess(
                 change_id=change_id,
-                repo_path=repo_override,
-                default_repo=default_repo,
+                repo_path=repo_path,
                 backend=backend,
                 output_json=output_json,
                 line_queue=line_q,
@@ -646,20 +790,9 @@ def main(argv: list[str] | None = None) -> int:
     trigger_channel = os.environ.get("DISCORD_TRIGGER_CHANNEL", DEFAULT_TRIGGER_CHANNEL)
     poll_seconds = int(os.environ.get("DISCORD_POLL_SECONDS", str(DEFAULT_POLL_SECONDS)))
 
-    # Resolve default repo (arg → git root of cwd → script parent)
-    if args.repo:
-        default_repo = str(Path(args.repo).resolve())
-    else:
-        import subprocess as _sp
-        result = _sp.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            capture_output=True, text=True, timeout=10, check=False,
-        )
-        default_repo = result.stdout.strip() if result.returncode == 0 else str(
-            Path(__file__).resolve().parent.parent
-        )
+    default_repo: str | None = str(Path(args.repo).resolve()) if args.repo else None
 
-    _log(f"Default repo:  {default_repo}")
+    _log(f"Default repo:  {default_repo or '(none — required per trigger)'}")
     _log(f"Guild:         {guild_name}")
     _log(f"Channel:       #{trigger_channel}")
     _log(f"Poll interval: {poll_seconds}s")
