@@ -35,7 +35,6 @@ import os
 import sys
 from pathlib import Path
 
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Agent Trigger API — Discord listener + HTTP API"
