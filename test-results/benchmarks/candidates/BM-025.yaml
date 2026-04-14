@@ -1,0 +1,59 @@
+id: BM-025
+name: 'Add tooltip to note date display'
+difficulty_estimate: easy
+description: |
+  Add a tooltip to the note component's date display that shows the full
+  date/time on hover.
+
+story_prompt: |
+  As a developer, I need the note component
+  (libs/shared/ui/components/src/lib/notes/notes-container/note/)
+  to show a tooltip on the date display.
+  Requirements:
+  1. Add a `title` attribute to the note date element (data-test-id='note-date')
+     that shows the full ISO date string
+  2. Add input `dateFormat` of type 'short' | 'long' with default 'short'
+  3. 'short' format: 'MM/DD/YYYY'
+  4. 'long' format: 'MMMM DD, YYYY at HH:MM AM/PM'
+  5. The title always shows the full ISO string regardless of display format
+  6. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'title attribute on date element shows full ISO date'
+    weight: 1.5
+  - id: AC-02
+    description: "dateFormat input with 'short' and 'long' options"
+    weight: 1.0
+  - id: AC-03
+    description: 'Short format displays MM/DD/YYYY'
+    weight: 1.0
+  - id: AC-04
+    description: 'Long format displays full readable date'
+    weight: 1.0
+  - id: AC-05
+    description: 'Cypress tests cover both formats and tooltip'
+    weight: 1.5
+  - id: AC-06
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+    pattern: 'dateFormat'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.test-harness.ts'
+    pattern: "date\\|format"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 2-4
+  touches_existing_tests: true
+
+notes: |
+  Easy candidate: date formatting, title attribute, simple input.

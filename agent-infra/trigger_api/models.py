@@ -13,15 +13,29 @@ BackendValue = Literal["copilot", "claude"]
 
 
 class TriggerEvent(BaseModel):
-    """Normalised trigger event from any source."""
+    """Normalised trigger event from any source.
+
+    Fields shared by all trigger types:
+        source, action, change_id, repo_path, backend, requester, metadata
+
+    Fields used by the general-run trigger (``action="general_run"``):
+        prompt   — the prompt text to send to the agent
+        model    — model identifier for the backend CLI (e.g. ``sonnet``, ``opus``)
+        agent_file — optional ``.agent.md`` file path
+    """
 
     source: TriggerSource
-    action: str  # "run", "cancel" — extensible via ActionHandler registry
+    action: str  # "run", "general_run", "cancel" — extensible via ActionHandler registry
     change_id: str
     repo_path: str | None = None
     backend: BackendValue | None = None
     requester: str | None = None
     metadata: dict = Field(default_factory=dict)
+
+    # General-run fields
+    prompt: str | None = None
+    model: str | None = None
+    agent_file: str | None = None
 
     @field_validator("change_id")
     @classmethod

@@ -98,6 +98,36 @@ class TestTriggerEvent:
         e = TriggerEvent(source="http", action="deploy", change_id="WI-1")
         assert e.action == "deploy"
 
+    # --- General-run fields ---
+
+    def test_general_run_fields_default_none(self):
+        e = TriggerEvent(source="http", action="run", change_id="WI-1")
+        assert e.prompt is None
+        assert e.model is None
+        assert e.agent_file is None
+
+    def test_general_run_fields_set(self):
+        e = TriggerEvent(
+            source="http",
+            action="general_run",
+            change_id="GEN-1234",
+            backend="claude",
+            prompt="Fix the bug",
+            model="sonnet",
+            agent_file="spike.agent.md",
+        )
+        assert e.prompt == "Fix the bug"
+        assert e.model == "sonnet"
+        assert e.agent_file == "spike.agent.md"
+
+    def test_general_run_action_normalised(self):
+        e = TriggerEvent(
+            source="http",
+            action="GENERAL_RUN",
+            change_id="GEN-1234",
+        )
+        assert e.action == "general_run"
+
 
 # ---------------------------------------------------------------------------
 # RunRecord

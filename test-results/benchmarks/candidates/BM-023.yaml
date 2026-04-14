@@ -1,0 +1,64 @@
+id: BM-023
+name: 'Add health check retry logic'
+difficulty_estimate: medium
+description: |
+  Add retry logic to the web-server health check system with configurable
+  retry count and delay.
+
+story_prompt: |
+  As a developer, I need retry logic in the web-server health system
+  (apps/web-server/src/health/).
+  Requirements:
+  1. Create a new file `health-retry.ts` with function
+     `withRetry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T>`
+  2. RetryOptions: { maxRetries: number, delayMs: number, backoff: 'fixed' | 'exponential' }
+  3. On failure, retry up to maxRetries times with the specified delay strategy
+  4. For exponential backoff: delay = delayMs * 2^attempt
+  5. If all retries fail, throw the last error
+  6. Add comprehensive Jest unit tests
+  7. Edge cases: maxRetries=0 means no retries, negative delay treated as 0
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'withRetry function exists with correct signature'
+    weight: 1.5
+  - id: AC-02
+    description: 'Fixed delay retry works correctly'
+    weight: 1.0
+  - id: AC-03
+    description: 'Exponential backoff works correctly'
+    weight: 1.5
+  - id: AC-04
+    description: 'Throws last error after all retries exhausted'
+    weight: 1.0
+  - id: AC-05
+    description: 'Edge cases handled (maxRetries=0, negative delay)'
+    weight: 1.0
+  - id: AC-06
+    description: 'Comprehensive Jest tests'
+    weight: 1.5
+  - id: AC-07
+    description: 'TypeScript types well-defined'
+    weight: 1.0
+
+hidden_checks:
+  - type: file_exists
+    path: 'apps/web-server/src/health/health-retry.ts'
+  - type: grep_match
+    file: 'apps/web-server/src/health/health-retry.ts'
+    pattern: 'withRetry'
+  - type: grep_match
+    file: 'apps/web-server/src/health/health-retry.ts'
+    pattern: "exponential\\|backoff"
+
+required_artifacts:
+  - 'apps/web-server/src/health/health-retry.ts'
+
+grading_metadata:
+  expected_files_changed: 2-3
+  expected_test_count_added: 5-8
+  touches_existing_tests: false
+
+notes: |
+  Medium difficulty: requires async/await, retry patterns, exponential backoff
+  math, error handling, and mock-heavy Jest tests with timers.

@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-04-12T11:48:04Z",
+  "stories": [
+    {
+      "story_id": "BM-010",
+      "name": "Add note sorting to notes-container",
+      "measured_difficulty": "medium",
+      "role": "medium-benchmark",
+      "trials": [
+        {
+          "story_id": "BM-010",
+          "trial_number": 1,
+          "status": "pass",
+          "workflow_completed": true,
+          "phase2_gate_results": {
+            "P2-HG-01": true,
+            "P2-HG-02": true,
+            "P2-HG-03": true,
+            "P2-HG-04": true,
+            "P2-HG-05": true,
+            "P2-HG-06": true,
+            "P2-HG-07": true,
+            "P2-HG-08": true,
+            "P2-HG-09": true
+          },
+          "phase1_gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "workflow_metrics": {
+            "total_runtime_seconds": 2131.68,
+            "stage_runtimes": {
+              "intake": 0.0,
+              "task_generator": 161.9,
+              "task_assigner": 359.7,
+              "software_engineer": 1189.0,
+              "qa": 420.8,
+              "lessons_optimizer": 0.0
+            },
+            "stage_attempts": {
+              "intake": 0,
+              "task_generator": 1,
+              "task_assigner": 2,
+              "software_engineer": 2,
+              "qa": 3,
+              "lessons_optimizer": 1
+            },
+            "evaluator_loop_counts": {
+              "0m [task_generator": 1,
+              "0m [task_assigner": 2,
+              "0m   [UoW UOW-001": 1,
+              "0m   [UoW UOW-002": 1,
+              "0m [qa": 3
+            },
+            "implementation_uow_attempts": {
+              "UOW-001": 1,
+              "UOW-002": 1
+            },
+            "escalation_count": 0,
+            "total_retries": 3,
+            "failure_stage": "",
+            "error_message": "",
+            "token_usage_by_stage": {}
+          },
+          "failure_stage": "",
+          "error_message": "",
+          "timestamp": "2026-04-12T11:12:32Z",
+          "runtime_seconds": 2131.68,
+          "files_changed": 5
+        }
+      ],
+      "pass_rate": 1.0,
+      "avg_weighted_score": 1.0,
+      "avg_runtime": 2131.68,
+      "pass_at_1": 1.0,
+      "pass_at_3": 1.0
+    }
+  ]
+}

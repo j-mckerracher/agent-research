@@ -11,13 +11,18 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from trigger_api.adapters.discord import (
+    HELP_MESSAGE,
+    HELP_MESSAGE_ADO,
+    HELP_MESSAGE_GENERAL,
     DiscordAPIError,
     _fmt_elapsed,
+    _tokenise_args,
     build_completion_summary,
     discord_request,
     get_channel_id,
     get_channel_messages,
     get_guild_id,
+    parse_general_trigger,
     parse_trigger,
     post_message,
     post_to_thread,
@@ -34,28 +39,49 @@ from trigger_api.models import RunRecord
 class TestParseTrigger:
     def test_basic_run(self):
         result = parse_trigger("RUN: WI-4461550")
-        assert result == ("WI-4461550", None)
+        assert result == ("WI-4461550", None, None)
 
     def test_run_with_repo(self):
         result = parse_trigger("RUN: WI-100 /home/user/myrepo")
-        assert result == ("WI-100", "/home/user/myrepo")
+        assert result == ("WI-100", "/home/user/myrepo", None)
+
+    def test_run_with_backend_claude(self):
+        result = parse_trigger("RUN: WI-100 claude")
+        assert result == ("WI-100", None, "claude")
+
+    def test_run_with_backend_copilot(self):
+        result = parse_trigger("RUN: WI-100 copilot")
+        assert result == ("WI-100", None, "copilot")
+
+    def test_run_with_repo_and_backend(self):
+        result = parse_trigger("RUN: WI-100 /home/user/myrepo claude")
+        assert result == ("WI-100", "/home/user/myrepo", "claude")
+
+    def test_run_with_repo_and_backend_copilot(self):
+        result = parse_trigger("RUN: WI-100 /home/user/myrepo copilot")
+        assert result == ("WI-100", "/home/user/myrepo", "copilot")
+
+    def test_backend_case_insensitive(self):
+        assert parse_trigger("RUN: WI-1 CLAUDE") == ("WI-1", None, "claude")
+        assert parse_trigger("RUN: WI-1 COPILOT") == ("WI-1", None, "copilot")
+        assert parse_trigger("RUN: WI-1 /path CLAUDE") == ("WI-1", "/path", "claude")
 
     def test_case_insensitive_prefix(self):
-        assert parse_trigger("run: WI-1") == ("WI-1", None)
-        assert parse_trigger("Run: WI-1") == ("WI-1", None)
-        assert parse_trigger("RUN: WI-1") == ("WI-1", None)
+        assert parse_trigger("run: WI-1") == ("WI-1", None, None)
+        assert parse_trigger("Run: WI-1") == ("WI-1", None, None)
+        assert parse_trigger("RUN: WI-1") == ("WI-1", None, None)
 
     def test_adds_wi_prefix_if_missing(self):
         result = parse_trigger("RUN: 4461550")
-        assert result == ("WI-4461550", None)
+        assert result == ("WI-4461550", None, None)
 
     def test_change_id_uppercased(self):
         result = parse_trigger("RUN: wi-100")
-        assert result == ("WI-100", None)
+        assert result == ("WI-100", None, None)
 
     def test_leading_trailing_whitespace(self):
         result = parse_trigger("  RUN: WI-1  ")
-        assert result == ("WI-1", None)
+        assert result == ("WI-1", None, None)
 
     def test_not_a_trigger_returns_none(self):
         assert parse_trigger("Hello world") is None
@@ -67,16 +93,47 @@ class TestParseTrigger:
         assert parse_trigger("RUN:   ") is None
 
     def test_repo_with_spaces_not_split(self):
-        # Only first whitespace splits change_id from repo
+        # A path with internal spaces, no backend suffix.
         result = parse_trigger("RUN: WI-1 /path/to/my repo")
-        assert result == ("WI-1", "/path/to/my repo")
+        assert result == ("WI-1", "/path/to/my repo", None)
 
-    def test_multiword_body_uses_first_token(self):
+    def test_repo_with_spaces_and_backend(self):
+        # Backend keyword recognised at end even when path contains spaces.
+        result = parse_trigger("RUN: WI-1 /path/to/my repo claude")
+        assert result == ("WI-1", "/path/to/my repo", "claude")
+
+    def test_multiword_body_no_backend(self):
         result = parse_trigger("RUN: WI-9 extra-word /some/path")
-        # Second token onward becomes the repo_path
         assert result is not None
         assert result[0] == "WI-9"
         assert result[1] == "extra-word /some/path"
+        assert result[2] is None
+
+    def test_non_backend_last_token_stays_in_repo(self):
+        # "notabackend" must not be stripped as a backend keyword.
+        result = parse_trigger("RUN: WI-1 /some/path notabackend")
+        assert result == ("WI-1", "/some/path notabackend", None)
+
+
+# ---------------------------------------------------------------------------
+# HELP_MESSAGE
+# ---------------------------------------------------------------------------
+
+
+class TestHelpMessage:
+    def test_help_message_contains_run_prefix(self):
+        assert "RUN:" in HELP_MESSAGE
+
+    def test_help_message_contains_both_backends(self):
+        assert "claude" in HELP_MESSAGE
+        assert "copilot" in HELP_MESSAGE
+
+    def test_help_message_contains_examples(self):
+        assert "WI-" in HELP_MESSAGE
+
+    def test_help_message_fits_discord_limit(self):
+        # Must be postable in a single Discord message (≤ 2000 chars).
+        assert len(HELP_MESSAGE) <= 2000
 
 
 # ---------------------------------------------------------------------------
@@ -335,3 +392,139 @@ class TestStreamOutputToDiscord:
 
         assert posted[0].startswith("```")
         assert posted[0].endswith("```")
+
+
+# ---------------------------------------------------------------------------
+# _tokenise_args
+# ---------------------------------------------------------------------------
+
+
+class TestTokeniseArgs:
+    def test_simple_tokens(self):
+        assert _tokenise_args("--a b --c d") == ["--a", "b", "--c", "d"]
+
+    def test_quoted_string(self):
+        result = _tokenise_args('--prompt "Fix the bug" --repo /path')
+        assert result == ["--prompt", "Fix the bug", "--repo", "/path"]
+
+    def test_empty_string(self):
+        assert _tokenise_args("") == []
+
+    def test_only_whitespace(self):
+        assert _tokenise_args("   ") == []
+
+    def test_quoted_with_spaces(self):
+        result = _tokenise_args('--prompt "multiple words here"')
+        assert result == ["--prompt", "multiple words here"]
+
+    def test_adjacent_quotes(self):
+        result = _tokenise_args('"hello" "world"')
+        assert result == ["hello", "world"]
+
+
+# ---------------------------------------------------------------------------
+# parse_general_trigger
+# ---------------------------------------------------------------------------
+
+
+class TestParseGeneralTrigger:
+    def test_basic_required_args(self):
+        result = parse_general_trigger(
+            'RUN: --backend claude --prompt "Fix tests" --repo /path/to/repo'
+        )
+        assert result is not None
+        assert result["backend"] == "claude"
+        assert result["prompt"] == "Fix tests"
+        assert result["repo"] == "/path/to/repo"
+        assert result["model"] is None
+        assert result["agent"] is None
+
+    def test_all_args(self):
+        result = parse_general_trigger(
+            'RUN: --backend claude --model sonnet --prompt "Fix tests" --repo /path --agent spike.agent.md'
+        )
+        assert result is not None
+        assert result["backend"] == "claude"
+        assert result["model"] == "sonnet"
+        assert result["prompt"] == "Fix tests"
+        assert result["repo"] == "/path"
+        assert result["agent"] == "spike.agent.md"
+
+    def test_missing_backend_returns_none(self):
+        result = parse_general_trigger(
+            'RUN: --prompt "Fix tests" --repo /path'
+        )
+        assert result is None
+
+    def test_missing_prompt_returns_none(self):
+        result = parse_general_trigger(
+            "RUN: --backend claude --repo /path"
+        )
+        assert result is None
+
+    def test_missing_repo_returns_none(self):
+        result = parse_general_trigger(
+            'RUN: --backend claude --prompt "Fix tests"'
+        )
+        assert result is None
+
+    def test_not_a_trigger(self):
+        assert parse_general_trigger("Hello world") is None
+
+    def test_empty_body(self):
+        assert parse_general_trigger("RUN:") is None
+        assert parse_general_trigger("RUN:   ") is None
+
+    def test_non_flag_body_returns_none(self):
+        # Positional-style message should NOT match the general parser
+        result = parse_general_trigger("RUN: WI-1234 claude")
+        assert result is None
+
+    def test_case_insensitive_prefix(self):
+        result = parse_general_trigger(
+            'run: --backend claude --prompt "test" --repo /path'
+        )
+        assert result is not None
+        assert result["backend"] == "claude"
+
+    def test_extra_args_captured(self):
+        result = parse_general_trigger(
+            'RUN: --backend claude --prompt "test" --repo /path --custom-flag value'
+        )
+        assert result is not None
+        assert result.get("custom-flag") == "value"
+
+    def test_prompt_with_quotes_preserved(self):
+        result = parse_general_trigger(
+            'RUN: --backend claude --prompt "This is a long prompt with spaces" --repo /path'
+        )
+        assert result is not None
+        assert result["prompt"] == "This is a long prompt with spaces"
+
+
+# ---------------------------------------------------------------------------
+# HELP_MESSAGE variants
+# ---------------------------------------------------------------------------
+
+
+class TestHelpMessages:
+    def test_ado_help_message_contains_change_id(self):
+        assert "change-id" in HELP_MESSAGE_ADO
+
+    def test_general_help_message_contains_backend(self):
+        assert "--backend" in HELP_MESSAGE_GENERAL
+
+    def test_general_help_message_contains_prompt(self):
+        assert "--prompt" in HELP_MESSAGE_GENERAL
+
+    def test_general_help_message_contains_repo(self):
+        assert "--repo" in HELP_MESSAGE_GENERAL
+
+    def test_ado_help_fits_discord(self):
+        assert len(HELP_MESSAGE_ADO) <= 2000
+
+    def test_general_help_fits_discord(self):
+        assert len(HELP_MESSAGE_GENERAL) <= 2000
+
+    def test_backward_compat_alias(self):
+        assert HELP_MESSAGE == HELP_MESSAGE_ADO

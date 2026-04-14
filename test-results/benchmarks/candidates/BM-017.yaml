@@ -1,0 +1,65 @@
+id: BM-017
+name: 'Add keyboard navigation to note-input'
+difficulty_estimate: hard
+description: |
+  Add keyboard shortcuts to the note-input component: Enter to submit,
+  Escape to clear, Ctrl+Enter for newline support.
+
+story_prompt: |
+  As a developer, I need the note-input component
+  (libs/shared/ui/components/src/lib/notes/notes-container/note-input/)
+  to support keyboard navigation.
+  Requirements:
+  1. Pressing Enter (without modifier) should submit the note (trigger the existing submit action)
+  2. Pressing Escape should clear the input and blur the field
+  3. Pressing Ctrl+Enter should insert a newline (if input supports it)
+  4. Add a host listener or (keydown) handler for keyboard events
+  5. Prevent Enter from submitting if the input is empty
+  6. Add data-test-id='note-input-field' to the actual input/textarea element
+  7. Update Cypress tests to verify all keyboard shortcuts
+  8. Update test harness with keyboard action methods
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Enter submits non-empty note'
+    weight: 1.5
+  - id: AC-02
+    description: 'Enter does not submit empty note'
+    weight: 1.0
+  - id: AC-03
+    description: 'Escape clears and blurs'
+    weight: 1.5
+  - id: AC-04
+    description: 'Ctrl+Enter inserts newline'
+    weight: 1.0
+  - id: AC-05
+    description: 'Keyboard handler uses host binding or template event'
+    weight: 1.0
+  - id: AC-06
+    description: 'Cypress tests verify keyboard behavior'
+    weight: 1.5
+  - id: AC-07
+    description: 'Test harness has keyboard methods'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.ts'
+    pattern: "keydown\\|keyboard\\|Enter\\|Escape"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.test-harness.ts'
+    pattern: "key\\|keyboard\\|enter\\|escape"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 4-6
+  touches_existing_tests: true
+
+notes: |
+  Hard difficulty: requires keyboard event handling, preventing default behavior,
+  modifier key detection, focus management, and testing keyboard interactions
+  in Cypress (which requires special handling).

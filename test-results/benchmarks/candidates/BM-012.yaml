@@ -1,0 +1,66 @@
+id: BM-012
+name: 'Add loading skeleton to notes component'
+difficulty_estimate: medium
+description: |
+  Add a loading state to the notes component that shows animated skeleton
+  placeholders while notes are being fetched.
+
+story_prompt: |
+  As a developer, I need the notes component
+  (libs/shared/ui/components/src/lib/notes/) to show a loading state.
+  Requirements:
+  1. Add boolean input `loading` (default false)
+  2. When loading=true, show 3 skeleton placeholder elements instead of the notes list
+  3. Each skeleton should be a div with class 'note-skeleton' and
+     data-test-id='note-skeleton-N' (where N is 0, 1, 2)
+  4. Skeleton divs should have CSS animation (pulse or shimmer effect)
+  5. When loading=false, show the normal notes list
+  6. Add a loading message span with data-test-id='notes-loading-msg' and text 'Loading notes...'
+  7. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'loading input exists with default false'
+    weight: 1.0
+  - id: AC-02
+    description: 'Three skeleton elements shown when loading=true'
+    weight: 1.5
+  - id: AC-03
+    description: 'Skeletons have correct data-test-ids'
+    weight: 1.0
+  - id: AC-04
+    description: 'Loading message displayed'
+    weight: 1.0
+  - id: AC-05
+    description: 'Normal notes shown when loading=false'
+    weight: 1.0
+  - id: AC-06
+    description: 'CSS animation on skeletons'
+    weight: 0.5
+  - id: AC-07
+    description: 'Cypress tests cover loading and loaded states'
+    weight: 1.5
+  - id: AC-08
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes.component.ts'
+    pattern: 'loading'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes.component.test-harness.ts'
+    pattern: "skeleton\\|loading"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-5
+  expected_test_count_added: 3-5
+  touches_existing_tests: true
+
+notes: |
+  Medium difficulty: requires conditional rendering, CSS animation,
+  multiple test scenarios, understanding component template structure.

@@ -39,6 +39,7 @@ from run import (  # noqa: E402
     WorkflowError,
     create_pull_request,
     detect_available_backends,
+    emit_event,
     fetch_ado_context,
     format_summary,
     intake_artifacts_exist,
@@ -370,6 +371,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         except WorkflowError as exc:
             log("ERROR", f"Config error: {exc}")
+            emit_event("workflow_error", error=str(exc))
             _write_error_json(args.output_json, str(exc), worktree_info=worktree_info)
             return 1
 
@@ -377,6 +379,7 @@ def main(argv: list[str] | None = None) -> int:
             results = run_workflow(config)
         except WorkflowError as exc:
             log("ERROR", f"Workflow failed: {exc}")
+            emit_event("workflow_error", error=str(exc))
             _write_error_json(args.output_json, str(exc), worktree_info=worktree_info)
             return 1
 

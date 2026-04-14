@@ -1,0 +1,63 @@
+id: BM-020
+name: 'Add input clear button to InputComponent'
+difficulty_estimate: medium
+description: |
+  Enhance the InputComponent showClear functionality with a proper clear button
+  that resets the form control value and emits a cleared event.
+
+story_prompt: |
+  As a developer, I need the InputComponent
+  (libs/shared/ui/design-system/src/lib/components/input/) to have an
+  improved clear button.
+  Requirements:
+  1. When showClear=true and the input has a non-empty value, show a clear button
+     with data-test-id='input-clear-btn' and text '✕'
+  2. Clicking the button should reset the form control value to ''
+  3. After clearing, the input should receive focus
+  4. Add an output `cleared` that emits when the value is cleared
+  5. When the input value is empty, hide the clear button
+  6. Use computed() to derive whether the clear button should be visible
+  7. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Clear button shown when showClear=true and input non-empty'
+    weight: 1.5
+  - id: AC-02
+    description: 'Clear button hidden when input is empty'
+    weight: 1.0
+  - id: AC-03
+    description: "Clicking clear resets form control to ''"
+    weight: 1.5
+  - id: AC-04
+    description: 'Input receives focus after clear'
+    weight: 1.0
+  - id: AC-05
+    description: 'cleared output emits'
+    weight: 1.0
+  - id: AC-06
+    description: 'Cypress tests cover show/hide/clear/focus'
+    weight: 1.5
+  - id: AC-07
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/lib/components/input/input.component.ts'
+    pattern: "cleared\\|output"
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/lib/components/input/input.component.ts'
+    pattern: 'computed'
+
+required_artifacts:
+  - 'libs/shared/ui/design-system/src/lib/components/input/input.component.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 4-6
+  touches_existing_tests: true
+
+notes: |
+  Medium difficulty: requires reactive form integration, computed signals,
+  focus management, output events, and multiple test scenarios.

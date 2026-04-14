@@ -1,0 +1,126 @@
+# Benchmark Grading Specification
+# Defines hard gates, weighted AC scoring, tracked metrics, and difficulty classification.
+
+schema_version: '1.0'
+
+# ─── Hard Gates ──────────────────────────────────────────────────────────
+# ALL gates must pass for a trial to receive any score.
+# If any gate fails, the trial score is 0.0 and status is "gate_fail".
+
+hard_gates:
+  - id: HG-01
+    name: workflow_exit_success
+    description: 'The copilot CLI process exited with code 0'
+    check: 'exit_code == 0'
+
+  - id: HG-02
+    name: required_files_exist
+    description: "All files listed in the story's required_artifacts exist after the trial"
+    check: 'all(os.path.exists(f) for f in required_artifacts)'
+
+  - id: HG-03
+    name: typescript_compiles
+    description: 'Affected project(s) compile without errors (nx build or tsc)'
+    check: 'tsc_exit_code == 0'
+
+  - id: HG-04
+    name: lint_passes
+    description: 'Affected project(s) pass linting (nx lint)'
+    check: 'lint_exit_code == 0'
+
+  - id: HG-05
+    name: hidden_checks_pass
+    description: 'All hidden structural/behavioral checks pass'
+    check: 'all(hidden_check_results)'
+
+# ─── Visible AC Scoring ─────────────────────────────────────────────────
+# Each visible AC is scored: 1.0 (full), 0.5 (partial), 0.0 (fail).
+# Final weighted score = sum(ac_score * ac_weight) / sum(ac_weight).
+
+visible_ac_scoring:
+  score_values: [0.0, 0.5, 1.0]
+  aggregation: weighted_average
+  passing_threshold: 0.7 # Minimum weighted score to count as "pass"
+
+# ─── Hidden Checks ──────────────────────────────────────────────────────
+# Used only by the benchmark harness. The agent never sees these.
+# Each check is binary (pass/fail). All must pass for HG-05.
+
+hidden_check_types:
+  - file_contains: 'Check that a specific file contains a string/pattern'
+  - file_not_contains: 'Check that a specific file does NOT contain a pattern'
+  - file_exists: 'Check that a file exists at a path'
+  - file_count: 'Check that a glob matches an expected count of files'
+  - json_valid: 'Check that a JSON file is parseable'
+  - yaml_valid: 'Check that a YAML file is parseable'
+  - grep_match: 'Check that a regex matches in a file'
+  - grep_no_match: 'Check that a regex does NOT match in a file'
+  - command_succeeds: 'Check that a shell command exits 0'
+  - test_passes: 'Check that a specific test suite/file passes'
+
+# ─── Tracked Metrics (operational, not scored) ───────────────────────────
+
+tracked_metrics:
+  - id: TM-01
+    name: runtime_seconds
+    description: 'Wall-clock time from trial start to trial end'
+
+  - id: TM-02
+    name: files_changed
+    description: 'Count of files modified/created/deleted by the agent'
+
+  - id: TM-03
+    name: lines_changed
+    description: 'Total lines added + removed'
+
+  - id: TM-04
+    name: copilot_output_length
+    description: 'Character count of copilot stdout'
+
+  - id: TM-05
+    name: retry_count
+    description: 'Number of retries if the harness retries on transient failures'
+
+# ─── Failure Semantics ──────────────────────────────────────────────────
+
+failure_semantics:
+  gate_fail:
+    description: 'One or more hard gates failed. Trial score is 0.0.'
+    contributes_to_pass_rate: false
+
+  low_score:
+    description: 'All gates passed but weighted AC score < passing_threshold.'
+    contributes_to_pass_rate: false
+
+  pass:
+    description: 'All gates passed and weighted AC score >= passing_threshold.'
+    contributes_to_pass_rate: true
+
+  error:
+    description: 'Trial could not be graded due to infrastructure error (timeout, crash).'
+    contributes_to_pass_rate: false
+
+# ─── Difficulty Classification ───────────────────────────────────────────
+# Based on measured 5-trial pass rate during calibration.
+
+difficulty_classification:
+  easy:
+    pass_rate_min: 0.8 # 4/5 or 5/5 trials pass
+    description: 'Smoke tests. Agent reliably completes these.'
+  medium:
+    pass_rate_min: 0.4 # 2/5 or 3/5 trials pass
+    pass_rate_max: 0.79
+    description: 'Core benchmark stories. Challenging but achievable.'
+  hard:
+    pass_rate_max: 0.39 # 0/5 or 1/5 trials pass
+    description: 'Stretch goals. Currently difficult for the agent.'
+
+# ─── Calibration Parameters ─────────────────────────────────────────────
+
+calibration:
+  trials_per_candidate: 5
+  model: 'gpt-5-mini'
+  effort: 'high'
+  cli: 'copilot'
+  timeout_seconds: 300
+  repo_state: 'HEAD at calibration start'

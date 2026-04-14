@@ -1,0 +1,67 @@
+id: BM-024
+name: 'Add sidebar width persistence'
+difficulty_estimate: hard
+description: |
+  Add localStorage persistence for sidebar width in the sidebar component
+  with debounced saving and restore on init.
+
+story_prompt: |
+  As a developer, I need the sidebar component
+  (libs/shared/ui/design-system/src/lib/components/sidebar/) to persist
+  its width across sessions.
+  Requirements:
+  1. Add input `persistKey` (string, default '') — localStorage key prefix
+  2. When persistKey is non-empty, save sidebar width to localStorage on resize
+  3. Debounce saves with 300ms delay to avoid excessive writes
+  4. On component init, restore width from localStorage if persistKey is set
+  5. Add method `resetWidth()` that clears stored width and reverts to default
+  6. Use signals for width state management
+  7. Handle edge case: invalid stored value (NaN, negative) falls back to default
+  8. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'persistKey input exists'
+    weight: 1.0
+  - id: AC-02
+    description: 'Width saved to localStorage on resize'
+    weight: 1.5
+  - id: AC-03
+    description: 'Width restored from localStorage on init'
+    weight: 1.5
+  - id: AC-04
+    description: 'Saves debounced with 300ms delay'
+    weight: 1.0
+  - id: AC-05
+    description: 'resetWidth() clears stored width'
+    weight: 1.0
+  - id: AC-06
+    description: 'Invalid stored values handled'
+    weight: 1.0
+  - id: AC-07
+    description: 'Cypress tests cover save, restore, reset'
+    weight: 1.5
+  - id: AC-08
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/lib/components/sidebar/sidebar.component.ts'
+    pattern: "persistKey\\|localStorage"
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/lib/components/sidebar/sidebar.component.ts'
+    pattern: "debounce\\|setTimeout"
+
+required_artifacts:
+  - 'libs/shared/ui/design-system/src/lib/components/sidebar/sidebar.component.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 4-6
+  touches_existing_tests: true
+
+notes: |
+  Hard difficulty: requires localStorage API, debouncing, lifecycle hooks,
+  error handling for invalid stored values, and complex test setup
+  (mocking localStorage in Cypress).

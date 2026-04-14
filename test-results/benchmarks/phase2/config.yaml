@@ -1,0 +1,65 @@
+# Phase 2 Workflow Validation Configuration
+schema_version: '1.0'
+
+phase: 2
+purpose: 'Validate multi-agent workflow reliability on calibrated benchmark stories'
+
+# Model policy (frozen from Phase 1 recommendation)
+model: 'gpt-5-mini'
+effort: 'high'
+cli: 'copilot'
+timeout_seconds: 3600
+
+# Trial configuration
+trials_per_story: 3
+
+# Scope control: start with MEDIUM stories only
+scope: 'medium' # Options: easy, medium, hard, all
+selected_stories:
+  medium:
+    - BM-003
+    - BM-010
+    - BM-006
+
+# Phase 2 hard gates
+hard_gates:
+  - id: P2-HG-01
+    name: workflow_terminal_success
+    description: 'run_workflow() completes without exception'
+  - id: P2-HG-02
+    name: build_succeeds
+    description: 'TypeScript compilation passes'
+  - id: P2-HG-03
+    name: tests_pass
+    description: 'Relevant tests pass (if applicable)'
+  - id: P2-HG-04
+    name: required_artifacts_exist
+    description: "All files in story's required_artifacts list exist"
+  - id: P2-HG-05
+    name: artifact_schemas_valid
+    description: 'Workflow artifacts have valid schema'
+  - id: P2-HG-06
+    name: no_unresolved_escalations
+    description: 'No escalated.json remains after workflow'
+  - id: P2-HG-07
+    name: no_forbidden_file_changes
+    description: 'No changes to node_modules, dist, .git, lock files, etc.'
+  - id: P2-HG-08
+    name: hidden_checks_pass
+    description: 'Phase 1 hidden checks all pass'
+
+# Workflow configuration overrides
+workflow_overrides:
+  max_task_plan_attempts: 3
+  max_assignment_attempts: 2
+  max_implementation_attempts: 3
+  max_qa_attempts: 3
+
+# Forbidden file patterns (P2-HG-07)
+forbidden_file_patterns:
+  - 'node_modules/'
+  - 'dist/'
+  - '.git/'
+  - 'package-lock.json'
+  - '*.env*'
+  - 'benchmarks/'

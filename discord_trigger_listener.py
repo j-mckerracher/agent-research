@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Discord Trigger Listener — polls #trigger-agents for RUN: commands and launches workflows.
+"""Discord Trigger Listener — polls #trigger-agents-ado-work for RUN: commands and launches workflows.
 
 Posts live progress and a structured completion summary to the Discord thread it creates
 for each run. Runs indefinitely until killed (Ctrl-C or SIGTERM).
@@ -10,7 +10,7 @@ Usage:
         [--backend copilot|claude] \\
         [--runner-script /abs/path/to/run_headless.py]
 
-Trigger format (post in #trigger-agents):
+Trigger format (post in #trigger-agents-ado-work):
     RUN: WI-4461550 claude
     RUN: WI-4461550 copilot
     RUN: WI-4461550 claude /absolute/path/to/repo
@@ -20,7 +20,7 @@ Trigger format (post in #trigger-agents):
 Environment variables:
     DISCORD_BOT_TOKEN        Required
     DISCORD_GUILD_NAME       Discord server name      (default: Agent-Escalations)
-    DISCORD_TRIGGER_CHANNEL  Channel to watch         (default: trigger-agents)
+    DISCORD_TRIGGER_CHANNEL  Channel to watch         (default: trigger-agents-ado-work)
     DISCORD_POLL_SECONDS     Poll interval in seconds (default: 10)
 """
 
@@ -48,7 +48,7 @@ from pathlib import Path
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
 DEFAULT_GUILD_NAME = "Agent-Escalations"
-DEFAULT_TRIGGER_CHANNEL = "trigger-agents"
+DEFAULT_TRIGGER_CHANNEL = "trigger-agents-ado-work"
 DEFAULT_POLL_SECONDS = 10
 
 # How many output lines to buffer before flushing to Discord
@@ -57,6 +57,10 @@ OUTPUT_FLUSH_LINES = 20
 OUTPUT_FLUSH_SECONDS = 30
 # Maximum characters per Discord message (hard limit is 2000)
 DISCORD_MAX_CHARS = 1900
+# Prefix that run.py uses to emit structured events on stdout
+_EVENT_PREFIX = "##EVENT##"
+# How often (seconds) to post a heartbeat summary to the Discord thread
+HEARTBEAT_INTERVAL_SECONDS = 180
 
 RUN_PREFIX = "RUN:"
 REPO_PREFIX = "REPO:"
@@ -317,8 +321,13 @@ def stream_output_to_discord(
     token: str,
     thread_id: str,
     line_queue: "queue.Queue[str | None]",
+    event_state: "EventState | None" = None,
 ) -> None:
-    """Read from line_queue and flush to Discord in batches."""
+    """Read from line_queue and flush to Discord in batches.
+
+    Lines prefixed with _EVENT_PREFIX are parsed as structured events and posted
+    as formatted Discord messages; they are never included in raw code-block output.
+    """
     buffer: list[str] = []
     last_flush = time.monotonic()
 
@@ -339,6 +348,19 @@ def stream_output_to_discord(
         if line is None:  # sentinel — subprocess finished
             _flush()
             return
+
+        # Structured event lines — parse, post formatted message, skip raw buffer
+        if line.startswith(_EVENT_PREFIX):
+            try:
+                payload = json.loads(line[len(_EVENT_PREFIX):].strip())
+                if event_state is not None:
+                    _update_event_state(event_state, payload)
+                msg = format_event_message(payload, event_state)
+                if msg:
+                    post_to_thread(token, thread_id, msg)
+            except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                _log(f"Failed to parse event line: {exc}")
+            continue
 
         buffer.append(line)
 
@@ -430,6 +452,160 @@ class PendingRun:
         self.change_id = change_id
         self.backend = backend
         self.triggered_by = triggered_by
+
+
+# ---------------------------------------------------------------------------
+# Structured event state (populated by ##EVENT## lines from run.py)
+# ---------------------------------------------------------------------------
+
+
+class EventState:
+    """Mutable state updated as ##EVENT## lines arrive from the subprocess."""
+
+    def __init__(self) -> None:
+        self.workflow_start_time: float = 0.0
+        self.current_stage: str = ""
+        self.current_stage_number: int = 0
+        self.total_stages: int = 6
+        self.completed_stages: list[tuple[str, bool, int]] = []  # (name, passed, attempts)
+        self.current_attempt: int = 0
+        self.max_attempts: int = 0
+        self.current_uow: str = ""
+        self.current_uow_index: int = 0
+        self.total_uows: int = 0
+
+
+_STAGE_LABELS: dict[str, str] = {
+    "intake": "intake",
+    "task_generator": "task-generator",
+    "task_assigner": "task-assigner",
+    "software_engineer": "software-engineer",
+    "qa": "QA",
+    "lessons_optimizer": "lessons-optimizer",
+}
+
+
+def _update_event_state(state: EventState, payload: dict) -> None:
+    """Update mutable EventState from a parsed ##EVENT## payload."""
+    t = payload.get("type", "")
+    if t == "workflow_start":
+        state.total_stages = payload.get("total_stages", 6)
+    elif t == "stage_start":
+        state.current_stage = payload.get("stage", "")
+        state.current_stage_number = payload.get("stage_number", 0)
+        state.total_stages = payload.get("total_stages", state.total_stages)
+        state.current_attempt = 0
+        state.max_attempts = 0
+        state.current_uow = ""
+        state.current_uow_index = 0
+        state.total_uows = 0
+    elif t == "stage_complete":
+        name = payload.get("stage", "")
+        passed = bool(payload.get("passed", False))
+        attempts = int(payload.get("attempts", 0))
+        state.completed_stages.append((name, passed, attempts))
+    elif t == "eval_attempt":
+        state.current_attempt = int(payload.get("attempt", 0))
+        state.max_attempts = int(payload.get("max_attempts", 0))
+    elif t == "uow_start":
+        state.current_uow = payload.get("uow_id", "")
+        state.current_uow_index = int(payload.get("uow_index", 0))
+        state.total_uows = int(payload.get("total_uows", 0))
+
+
+def _stage_label(name: str) -> str:
+    return _STAGE_LABELS.get(name, name)
+
+
+def format_event_message(payload: dict, state: EventState | None) -> str | None:
+    """Convert a structured ##EVENT## payload into a Discord message, or None to skip."""
+    t = payload.get("type", "")
+
+    if t == "stage_start":
+        n = payload.get("stage_number", "?")
+        total = payload.get("total_stages", "?")
+        stage = _stage_label(payload.get("stage", ""))
+        return f"**Stage {n}/{total}** — Starting _{stage}_"
+
+    if t == "stage_complete":
+        n = payload.get("stage_number", "?")
+        total = state.total_stages if state else "?"
+        stage = _stage_label(payload.get("stage", ""))
+        passed = bool(payload.get("passed", False))
+        attempts = payload.get("attempts", "?")
+        elapsed = payload.get("elapsed_s", "?")
+        status = "passed" if passed else "**failed**"
+        elapsed_str = f"{elapsed}s" if isinstance(elapsed, (int, float)) else str(elapsed)
+        return f"**Stage {n}/{total}** — _{stage}_ {status} (attempt {attempts}) — {elapsed_str}"
+
+    if t == "eval_attempt":
+        stage = _stage_label(payload.get("stage", ""))
+        attempt = payload.get("attempt", "?")
+        max_att = payload.get("max_attempts", "?")
+        passed = bool(payload.get("passed", False))
+        score = payload.get("score", "?")
+        if passed:
+            return f"_{stage}_ evaluator **passed** on attempt {attempt}/{max_att} (score: {score})"
+        return f"_{stage}_ evaluator **failed** on attempt {attempt}/{max_att} (score: {score})"
+
+    if t == "uow_start":
+        idx = payload.get("uow_index", "?")
+        total = payload.get("total_uows", "?")
+        uow_id = payload.get("uow_id", "?")
+        return f"Implementation: starting UoW {idx}/{total} (`{uow_id}`)"
+
+    if t == "uow_complete":
+        uow_id = payload.get("uow_id", "?")
+        passed = bool(payload.get("passed", False))
+        attempts = payload.get("attempts", "?")
+        score = payload.get("score", "?")
+        status = "**passed**" if passed else "**failed**"
+        return f"Implementation: UoW `{uow_id}` {status} (attempt {attempts}, score: {score})"
+
+    if t == "escalation_start":
+        stage = _stage_label(payload.get("stage", ""))
+        uow_id = payload.get("uow_id")
+        suffix = f" (UoW `{uow_id}`)" if uow_id else ""
+        return f":warning: **Escalation** — _{stage}_{suffix} requires human intervention"
+
+    if t == "workflow_error":
+        error = payload.get("error", "unknown error")
+        return f":red_circle: **Workflow error**: {error}"
+
+    # workflow_start / workflow_complete / unknown — skip (completion summary handles the rest)
+    return None
+
+
+def _build_heartbeat_summary(state: EventState, elapsed: float) -> str:
+    """Format a periodic heartbeat summary for the Discord thread."""
+    elapsed_str = _fmt_elapsed(int(elapsed))
+    passed_count = sum(1 for _, ok, _ in state.completed_stages if ok)
+    failed_count = sum(1 for _, ok, _ in state.completed_stages if not ok)
+    completed_count = len(state.completed_stages)
+
+    stage_label = _stage_label(state.current_stage) if state.current_stage else "—"
+    stage_info = (
+        f"{stage_label} ({state.current_stage_number}/{state.total_stages})"
+        if state.current_stage_number
+        else stage_label
+    )
+
+    lines = [
+        "---",
+        f":blue_circle: **Status Update** — {elapsed_str} elapsed",
+        f"**Current stage:** {stage_info}",
+        f"**Completed:** {completed_count} stages ({passed_count} passed, {failed_count} failed)",
+    ]
+    if state.current_attempt and state.max_attempts:
+        lines.append(f"**Current attempt:** {state.current_attempt}/{state.max_attempts}")
+    if state.total_uows:
+        done_uows = state.current_uow_index - 1 if state.current_uow_index else 0
+        uow_info = f"{done_uows}/{state.total_uows}"
+        if state.current_uow:
+            uow_info += f" (`{state.current_uow}` in progress)"
+        lines.append(f"**UoW progress:** {uow_info}")
+    lines.append("---")
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -699,6 +875,25 @@ def _start_run_thread(
             output_json = Path(tmp.name)
 
         start_time = time.monotonic()
+        event_state = EventState()
+        event_state.workflow_start_time = start_time
+        done_event = threading.Event()
+
+        def _heartbeat_loop() -> None:
+            while not done_event.wait(timeout=HEARTBEAT_INTERVAL_SECONDS):
+                if event_state.current_stage:
+                    try:
+                        summary = _build_heartbeat_summary(
+                            event_state, time.monotonic() - start_time
+                        )
+                        post_to_thread(token, thread_id, summary)
+                    except Exception as exc:  # noqa: BLE001
+                        _log(f"Heartbeat post failed: {exc}")
+
+        heartbeat_thread = threading.Thread(
+            target=_heartbeat_loop, daemon=True, name=f"heartbeat-{change_id}"
+        )
+        heartbeat_thread.start()
 
         # Start the subprocess in another thread so we can stream its output
         exit_code_holder: list[int] = [0]
@@ -716,8 +911,12 @@ def _start_run_thread(
         sub_thread.start()
 
         # Stream output to Discord (blocks until subprocess exits)
-        stream_output_to_discord(token, thread_id, line_q)
+        stream_output_to_discord(token, thread_id, line_q, event_state)
         sub_thread.join()
+
+        # Stop heartbeat before posting completion summary
+        done_event.set()
+        heartbeat_thread.join(timeout=5)
 
         elapsed = time.monotonic() - start_time
         exit_code = exit_code_holder[0]

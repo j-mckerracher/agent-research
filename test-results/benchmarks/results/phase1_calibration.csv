@@ -1,0 +1,41 @@
+story_id,name,trial,status,exit_code,weighted_ac_score,runtime_seconds,files_changed,copilot_output_length,difficulty_estimate,measured_difficulty,pass_rate,flakiness_score,error_message
+BM-001,Add maxLength input to TextLinkComponent,1,pass,0,1.0,310.12,6,1308,easy,easy,1.0,0.0,
+BM-001,Add maxLength input to TextLinkComponent,2,pass,0,1.0,154.62,0,1422,easy,easy,1.0,0.0,
+BM-001,Add maxLength input to TextLinkComponent,3,pass,0,1.0,313.99,6,1299,easy,easy,1.0,0.0,
+BM-001,Add maxLength input to TextLinkComponent,4,pass,0,1.0,485.34,0,1156,easy,easy,1.0,0.0,
+BM-001,Add maxLength input to TextLinkComponent,5,pass,0,1.0,239.46,6,798,easy,easy,1.0,0.0,
+BM-003,Add character counter to note-input component,1,error,-1,0.0,600.04,0,0,medium,medium,0.6,0.96,Timeout
+BM-003,Add character counter to note-input component,2,pass,0,1.0,203.34,10,1862,medium,medium,0.6,0.96,
+BM-003,Add character counter to note-input component,3,pass,0,1.0,273.14,11,1461,medium,medium,0.6,0.96,
+BM-003,Add character counter to note-input component,4,error,-1,0.0,600.03,0,0,medium,medium,0.6,0.96,Timeout
+BM-003,Add character counter to note-input component,5,pass,0,1.0,563.19,6,2181,medium,medium,0.6,0.96,
+BM-006,Add search/filter to notes component,1,gate_fail,0,0.58,585.07,9,1130,hard,medium,0.4,0.96,
+BM-006,Add search/filter to notes component,2,pass,0,1.0,584.07,10,1910,hard,medium,0.4,0.96,
+BM-006,Add search/filter to notes component,3,pass,0,1.0,335.36,9,1292,hard,medium,0.4,0.96,
+BM-006,Add search/filter to notes component,4,gate_fail,0,0.58,334.82,10,1990,hard,medium,0.4,0.96,
+BM-006,Add search/filter to notes component,5,gate_fail,0,0.58,496.60,10,1391,hard,medium,0.4,0.96,
+BM-010,Add note sorting to notes-container,1,pass,0,1.0,382.52,10,1665,medium,medium,0.6,0.96,
+BM-010,Add note sorting to notes-container,2,pass,0,1.0,240.16,10,1753,medium,medium,0.6,0.96,
+BM-010,Add note sorting to notes-container,3,error,-1,0.0,600.05,0,0,medium,medium,0.6,0.96,Timeout
+BM-010,Add note sorting to notes-container,4,error,-1,0.0,600.04,0,0,medium,medium,0.6,0.96,Timeout
+BM-010,Add note sorting to notes-container,5,pass,0,1.0,282.44,10,1115,medium,medium,0.6,0.96,
+BM-011,Add byTestIdNth helper to common-testing,1,pass,0,1.0,122.55,7,1211,easy,easy,1.0,0.0,
+BM-011,Add byTestIdNth helper to common-testing,2,pass,0,1.0,162.62,7,1084,easy,easy,1.0,0.0,
+BM-011,Add byTestIdNth helper to common-testing,3,pass,0,1.0,146.29,7,1438,easy,easy,1.0,0.0,
+BM-011,Add byTestIdNth helper to common-testing,4,pass,0,1.0,121.62,7,1281,easy,easy,1.0,0.0,
+BM-011,Add byTestIdNth helper to common-testing,5,pass,0,1.0,146.19,7,775,easy,easy,1.0,0.0,
+BM-015,Add read/unread state to note component,1,pass,0,1.0,306.09,11,1135,medium,easy,1.0,0.0,
+BM-015,Add read/unread state to note component,2,pass,0,1.0,333.80,11,1610,medium,easy,1.0,0.0,
+BM-015,Add read/unread state to note component,3,pass,0,1.0,326.95,11,1250,medium,easy,1.0,0.0,
+BM-015,Add read/unread state to note component,4,pass,0,1.0,261.39,6,1617,medium,easy,1.0,0.0,
+BM-015,Add read/unread state to note component,5,pass,0,1.0,304.63,11,1243,medium,easy,1.0,0.0,
+BM-018,Add CSS theme variable to text-link,1,pass,0,1.0,207.93,10,1603,easy,medium,0.4,0.96,
+BM-018,Add CSS theme variable to text-link,2,pass,0,1.0,378.85,11,1889,easy,medium,0.4,0.96,
+BM-018,Add CSS theme variable to text-link,3,error,-1,0.0,600.04,0,0,easy,medium,0.4,0.96,Timeout
+BM-018,Add CSS theme variable to text-link,4,error,-1,0.0,600.03,0,0,easy,medium,0.4,0.96,Timeout
+BM-018,Add CSS theme variable to text-link,5,error,-1,0.0,600.02,0,0,easy,medium,0.4,0.96,Timeout
+BM-021,Add locator constants to testing library,1,pass,0,1.0,208.97,7,1480,easy,easy,1.0,0.0,
+BM-021,Add locator constants to testing library,2,pass,0,1.0,161.15,7,1428,easy,easy,1.0,0.0,
+BM-021,Add locator constants to testing library,3,pass,0,1.0,137.97,7,1098,easy,easy,1.0,0.0,
+BM-021,Add locator constants to testing library,4,pass,0,1.0,240.51,7,1562,easy,easy,1.0,0.0,
+BM-021,Add locator constants to testing library,5,pass,0,1.0,176.16,7,1074,easy,easy,1.0,0.0,

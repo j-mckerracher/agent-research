@@ -1,0 +1,63 @@
+id: BM-003
+name: 'Add character counter to note-input component'
+difficulty_estimate: medium
+description: |
+  Add a live character counter below the note input field that shows
+  "X / 500" where X is the current character count. When count exceeds 450,
+  the counter should display with a 'warning' CSS class. When count reaches 500,
+  the input should be prevented from accepting more characters.
+
+story_prompt: |
+  As a developer, I need the note-input component
+  (libs/shared/ui/components/src/lib/notes/notes-container/note-input/)
+  to display a character counter. Requirements:
+  1. Below the input, show a counter "X / 500" with data-test-id='note-char-counter'
+  2. X updates in real-time as the user types
+  3. When X > 450, add CSS class 'warning' to the counter element
+  4. When X >= 500, add CSS class 'limit-reached' and prevent further input (maxlength=500)
+  5. Update the component, template, test harness, and Cypress tests
+  6. Edge case: pasting text that exceeds 500 chars should be truncated to 500
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: "Character counter displays below input as 'X / 500'"
+    weight: 1.0
+  - id: AC-02
+    description: 'Counter updates in real-time'
+    weight: 1.0
+  - id: AC-03
+    description: 'Warning class applied when count > 450'
+    weight: 1.0
+  - id: AC-04
+    description: 'limit-reached class applied when count >= 500'
+    weight: 1.0
+  - id: AC-05
+    description: 'Input is limited to 500 characters via maxlength'
+    weight: 1.0
+  - id: AC-06
+    description: 'Cypress tests cover normal typing, warning threshold, and limit'
+    weight: 1.5
+  - id: AC-07
+    description: 'Test harness updated with counter assertion methods'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.ts'
+    pattern: "500\\|maxLength\\|charCount\\|characterCount"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.test-harness.ts'
+    pattern: "counter\\|char"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note-input/note-input.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 3-5
+  touches_existing_tests: true
+
+notes: |
+  Medium difficulty: requires signal/computed for character count, template logic,
+  CSS class bindings, maxlength attribute, and multiple test scenarios.

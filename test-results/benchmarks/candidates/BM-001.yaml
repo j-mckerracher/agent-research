@@ -1,0 +1,71 @@
+id: BM-001
+name: 'Add maxLength input to TextLinkComponent'
+difficulty_estimate: easy
+description: |
+  Add a new optional `maxLength` input to the TextLinkComponent that truncates
+  the displayed link text with an ellipsis ('...') when the text exceeds the
+  specified character limit. The full text should still be available as a
+  tooltip (title attribute). If maxLength is not provided or is 0, display
+  the full text unchanged.
+
+story_prompt: |
+  As a developer, I need the TextLinkComponent (libs/shared/ui/components/src/lib/text-link/)
+  to support a new optional input called `maxLength` (number, default 0 meaning no limit).
+  When maxLength > 0 and text.length > maxLength, the displayed text should be truncated
+  to maxLength characters followed by '...', and the full text should appear in a title
+  attribute on the anchor element. When maxLength is 0 or not set, display full text as today.
+  Update the component, template, test harness, and Cypress tests.
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'TextLinkComponent accepts an optional `maxLength` input with default 0'
+    weight: 1.0
+  - id: AC-02
+    description: "When maxLength > 0 and text.length > maxLength, displayed text is truncated with '...'"
+    weight: 1.5
+  - id: AC-03
+    description: 'When text is truncated, the anchor element has a title attribute with full text'
+    weight: 1.0
+  - id: AC-04
+    description: 'When maxLength is 0 or not set, full text is displayed (no truncation)'
+    weight: 1.0
+  - id: AC-05
+    description: 'Cypress tests cover truncation, no-truncation, and edge cases'
+    weight: 1.5
+  - id: AC-06
+    description: 'Test harness is updated with new assertion methods'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+    pattern: 'maxLength'
+    description: 'Component TS file contains maxLength input'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+    pattern: 'input<'
+    description: 'Uses signal-based input()'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.test-harness.ts'
+    pattern: "maxLength\\|truncat"
+    description: 'Test harness mentions maxLength or truncation'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.cy.ts'
+    pattern: "maxLength\\|truncat"
+    description: 'Cypress test covers maxLength or truncation'
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.cy.ts'
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 2-4
+  touches_existing_tests: true
+
+notes: |
+  Good benchmark candidate because: (1) modifies an existing well-tested component,
+  (2) requires computed() for derived state, (3) requires template changes,
+  (4) requires test harness updates, (5) has clear edge cases (empty string,
+  exact length, length+1), (6) fully deterministically gradable.

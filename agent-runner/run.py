@@ -86,6 +86,15 @@ def log(level: str, message: str) -> None:
     print(f"{_ANSI_BOLD}{_ts()}{_ANSI_RESET} {label} {message}", flush=True)
 
 
+_EVENT_PREFIX = "##EVENT##"
+
+
+def emit_event(event_type: str, **kwargs: object) -> None:
+    """Emit a structured event line on stdout for external consumers (e.g. Discord)."""
+    payload = {"type": event_type, "ts": _ts(), **kwargs}
+    print(f"{_EVENT_PREFIX} {json.dumps(payload, default=str)}", flush=True)
+
+
 def print_stage_banner(title: str) -> None:
     """Print a prominent visual separator for a workflow stage."""
     width = 72
@@ -250,8 +259,8 @@ STAGE_AGENT_ALIASES: dict[str, tuple[str, ...]] = {
 }
 
 BACKEND_SPECS: tuple[BackendSpec, ...] = (
-    BackendSpec(key="copilot", label="GitHub Copilot", command="copilot", default_model="claude-haiku-4.5"),
-    BackendSpec(key="claude", label="Claude Code", command="claude"),
+    BackendSpec(key="copilot", label="GitHub Copilot", command="copilot", default_model="claude-sonnet-4.6"),
+    BackendSpec(key="claude", label="Claude Code", command="claude", default_model="claude-sonnet-4-6"),
 )
 
 def iso_now() -> str:
@@ -2195,6 +2204,7 @@ def run_stage_loop(
         result_label = payload.get("overall_result", "?")
         if passed:
             log("OK", f"[{producer_stage_key}] Evaluator PASSED on attempt {attempt}  score={score}  result={result_label}")
+            emit_event("eval_attempt", stage=producer_stage_key, attempt=attempt, max_attempts=max_attempts, passed=True, score=score)
             return StageResult(
                 stage_name=producer_stage_key,
                 passed=True,
@@ -2204,6 +2214,7 @@ def run_stage_loop(
             )
 
         log("WARN", f"[{producer_stage_key}] Evaluator FAILED on attempt {attempt}  score={score}  result={result_label}")
+        emit_event("eval_attempt", stage=producer_stage_key, attempt=attempt, max_attempts=max_attempts, passed=False, score=score)
         issues = payload.get("issues") or []
         for issue in issues:
             log("WARN", f"  Issue: {issue.get('description', issue)}")
@@ -2214,6 +2225,7 @@ def run_stage_loop(
         escalated_on_disk = (_status_dir(config) / "escalated.json").exists()
 
         if escalation_required or escalated_on_disk:
+            emit_event("escalation_start", stage=producer_stage_key, attempt=attempt)
             if not escalated_on_disk:
                 write_escalation_artifact(
                     config, producer_stage_key, evaluator_stage_key, attempt, payload,
@@ -2266,6 +2278,7 @@ def run_execution_loop(config: WorkflowConfig, agents: dict[str, AgentSpec]) -> 
                 raise WorkflowError(f"Invalid UoW entry in assignments.json: {uow}")
 
             log("INFO", f"  Starting UoW '{uow_id}'  role={uow.get('assigned_role', '?')}")
+            emit_event("uow_start", uow_id=uow_id, uow_index=len(completed_uows) + 1, total_uows=total_uows)
             feedback_path: Path | None = None
             previous_signature: str | None = None
             feedback_summary: str | None = None
@@ -2354,6 +2367,7 @@ def run_execution_loop(config: WorkflowConfig, agents: dict[str, AgentSpec]) -> 
                 score = payload.get("score", "?")
                 if passed:
                     log("OK", f"  [UoW {uow_id}] Implementation PASSED on attempt {attempt}  score={score}")
+                    emit_event("uow_complete", uow_id=uow_id, passed=True, attempts=attempt, score=score)
                     completed_uows.append(uow_id)
                     produced_paths.extend(
                         [
@@ -2364,6 +2378,7 @@ def run_execution_loop(config: WorkflowConfig, agents: dict[str, AgentSpec]) -> 
                     break
 
                 log("WARN", f"  [UoW {uow_id}] Implementation FAILED on attempt {attempt}  score={score}")
+                emit_event("uow_complete", uow_id=uow_id, passed=False, attempts=attempt, score=score)
                 issues = payload.get("issues") or []
                 for issue in issues:
                     log("WARN", f"    Issue: {issue.get('description', issue)}")
@@ -2374,6 +2389,7 @@ def run_execution_loop(config: WorkflowConfig, agents: dict[str, AgentSpec]) -> 
                 escalated_on_disk = (_status_dir(config) / "escalated.json").exists()
 
                 if escalation_required or escalated_on_disk:
+                    emit_event("escalation_start", stage="software_engineer", uow_id=uow_id, attempt=attempt)
                     if not escalated_on_disk:
                         write_escalation_artifact(
                             config, "software_engineer", "implementation_evaluator",
@@ -2474,6 +2490,7 @@ def run_workflow(config: WorkflowConfig) -> list[StageResult]:
     """Execute the full custom-agent workflow and return stage results."""
 
     print_stage_banner(f"WORKFLOW START  change_id={config.change_id}  dry_run={config.dry_run}")
+    emit_event("workflow_start", change_id=config.change_id, total_stages=6, dry_run=config.dry_run)
     log("INFO", f"repo_root          = {config.repo_root}")
     log("INFO", f"workflow_assets_root = {config.workflow_assets_root}")
     log("INFO", f"artifact_root      = {config.artifact_root}")
@@ -2508,6 +2525,7 @@ def run_workflow(config: WorkflowConfig) -> list[StageResult]:
 
     # ── Stage 1: intake ────────────────────────────────────────────────────
     print_stage_banner("STAGE 1/6 — intake")
+    emit_event("stage_start", stage="intake", stage_number=1, total_stages=6)
     t0 = time.monotonic()
     intake_artifacts = intake_artifact_paths(config.artifact_root, config.change_id)
     if config.reuse_existing_intake:
@@ -2529,6 +2547,7 @@ def run_workflow(config: WorkflowConfig) -> list[StageResult]:
         )
         results.append(intake_result)
         log("OK", f"Stage 'intake' reused existing artifacts  elapsed={time.monotonic() - t0:.1f}s")
+        emit_event("stage_complete", stage="intake", stage_number=1, passed=True, attempts=0, elapsed_s=round(time.monotonic() - t0, 1))
     else:
         intake_agent = resolve_agent(agents, "intake")
         invoke_agent(config, intake_agent, build_intake_prompt(config), "intake", 1)
@@ -2544,9 +2563,11 @@ def run_workflow(config: WorkflowConfig) -> list[StageResult]:
         )
         results.append(intake_result)
         log("OK", f"Stage 'intake' complete  elapsed={time.monotonic() - t0:.1f}s")
+        emit_event("stage_complete", stage="intake", stage_number=1, passed=True, attempts=1, elapsed_s=round(time.monotonic() - t0, 1))
 
     # ── Stage 2+3: task-generator + task-plan-evaluator loop ───────────────
     print_stage_banner("STAGE 2+3/6 — task-generator ↔ task-plan-evaluator")
+    emit_event("stage_start", stage="task_generator", stage_number=2, total_stages=6)
     t0 = time.monotonic()
     task_plan_result = run_stage_loop(
         config=config,
@@ -2569,12 +2590,14 @@ def run_workflow(config: WorkflowConfig) -> list[StageResult]:
     )
     results.append(task_plan_result)
     log("OK", f"Stage 'task_generator' complete  attempts={task_plan_result.attempts}  elapsed={time.monotonic() - t0:.1f}s")
+    emit_event("stage_complete", stage="task_generator", stage_number=2, passed=task_plan_result.passed, attempts=task_plan_result.attempts, elapsed_s=round(time.monotonic() - t0, 1))
 
     # Safety net: check for inter-stage escalation
     _inter_stage_escalation_check(config, "after task_generator")
 
     # ── Stage 4+5: task-assigner + assignment-evaluator loop ───────────────
     print_stage_banner("STAGE 4+5/6 — task-assigner ↔ assignment-evaluator")
+    emit_event("stage_start", stage="task_assigner", stage_number=3, total_stages=6)
     t0 = time.monotonic()
     assignment_result = run_stage_loop(
         config=config,
@@ -2598,39 +2621,47 @@ def run_workflow(config: WorkflowConfig) -> list[StageResult]:
     )
     results.append(assignment_result)
     log("OK", f"Stage 'task_assigner' complete  attempts={assignment_result.attempts}  elapsed={time.monotonic() - t0:.1f}s")
+    emit_event("stage_complete", stage="task_assigner", stage_number=3, passed=assignment_result.passed, attempts=assignment_result.attempts, elapsed_s=round(time.monotonic() - t0, 1))
 
     # Safety net: check for inter-stage escalation
     _inter_stage_escalation_check(config, "after task_assigner")
 
     # ── Stage 6: software-engineer + implementation-evaluator loop ─────────
     print_stage_banner("STAGE 6/6 — software-engineer ↔ implementation-evaluator")
+    emit_event("stage_start", stage="software_engineer", stage_number=4, total_stages=6)
     t0 = time.monotonic()
     execution_result = run_execution_loop(config, agents)
     results.append(execution_result)
     log("OK", f"Stage 'software_engineer' complete  uows={execution_result.attempts}  elapsed={time.monotonic() - t0:.1f}s")
+    emit_event("stage_complete", stage="software_engineer", stage_number=4, passed=execution_result.passed, attempts=execution_result.attempts, elapsed_s=round(time.monotonic() - t0, 1))
 
     # Safety net: check for inter-stage escalation
     _inter_stage_escalation_check(config, "after software_engineer")
 
     # ── QA + QA evaluator loop ─────────────────────────────────────────────
     print_stage_banner("QA — qa-engineer ↔ qa-evaluator")
+    emit_event("stage_start", stage="qa", stage_number=5, total_stages=6)
     t0 = time.monotonic()
     qa_result = run_qa_loop(config, agents)
     results.append(qa_result)
     log("OK", f"Stage 'qa' complete  attempts={qa_result.attempts}  elapsed={time.monotonic() - t0:.1f}s")
+    emit_event("stage_complete", stage="qa", stage_number=5, passed=qa_result.passed, attempts=qa_result.attempts, elapsed_s=round(time.monotonic() - t0, 1))
 
     # Safety net: check for inter-stage escalation
     _inter_stage_escalation_check(config, "after qa")
 
     # ── Lessons optimizer ──────────────────────────────────────────────────
     print_stage_banner("LESSONS OPTIMIZER")
+    emit_event("stage_start", stage="lessons_optimizer", stage_number=6, total_stages=6)
     t0 = time.monotonic()
     lessons_result = run_lessons_stage(config, agents)
     results.append(lessons_result)
     log("OK", f"Stage 'lessons_optimizer' complete  elapsed={time.monotonic() - t0:.1f}s")
+    emit_event("stage_complete", stage="lessons_optimizer", stage_number=6, passed=lessons_result.passed, attempts=lessons_result.attempts, elapsed_s=round(time.monotonic() - t0, 1))
 
     total_elapsed = time.monotonic() - workflow_start
     print_stage_banner(f"WORKFLOW COMPLETE  total_elapsed={total_elapsed:.1f}s  stages={len(results)}")
+    emit_event("workflow_complete", total_elapsed_s=round(total_elapsed, 1), stage_count=len(results), all_passed=all(r.passed for r in results))
 
     write_runner_log(
         config,

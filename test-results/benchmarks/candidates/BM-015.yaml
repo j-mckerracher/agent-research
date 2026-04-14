@@ -1,0 +1,66 @@
+id: BM-015
+name: 'Add read/unread state to note component'
+difficulty_estimate: medium
+description: |
+  Add a visual read/unread indicator to individual notes in the note component.
+
+story_prompt: |
+  As a developer, I need the note component
+  (libs/shared/ui/components/src/lib/notes/notes-container/note/)
+  to support read/unread states.
+  Requirements:
+  1. Add boolean input `isRead` (default false)
+  2. When isRead=false, show an unread indicator dot with data-test-id='note-unread-dot'
+     and CSS class 'unread-dot' (small colored circle)
+  3. When isRead=true, do not show the indicator
+  4. Add an output `markAsRead` that emits when the note is clicked
+  5. Apply class 'note-unread' to the note container when unread, 'note-read' when read
+  6. Use signal for managing read state
+  7. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'isRead input exists with default false'
+    weight: 1.0
+  - id: AC-02
+    description: 'Unread dot shown when isRead=false'
+    weight: 1.5
+  - id: AC-03
+    description: 'Unread dot hidden when isRead=true'
+    weight: 1.0
+  - id: AC-04
+    description: 'markAsRead output emits on click'
+    weight: 1.5
+  - id: AC-05
+    description: 'CSS classes applied correctly'
+    weight: 1.0
+  - id: AC-06
+    description: 'Cypress tests cover both states and click event'
+    weight: 1.5
+  - id: AC-07
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+    pattern: 'isRead'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+    pattern: "markAsRead\\|output"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.test-harness.ts'
+    pattern: "unread\\|read"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 3-5
+  touches_existing_tests: true
+
+notes: |
+  Medium difficulty: requires input/output, conditional rendering, CSS classes,
+  event handling, and testing both states plus event emission.

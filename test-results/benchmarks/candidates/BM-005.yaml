@@ -1,0 +1,53 @@
+id: BM-005
+name: 'Add tooltip position input to InteractiveTooltipComponent'
+difficulty_estimate: easy
+description: |
+  Add a `position` input to InteractiveTooltipComponent that controls where
+  the tooltip appears relative to its trigger element.
+
+story_prompt: |
+  As a developer, I need the InteractiveTooltipComponent
+  (libs/shared/ui/components/src/lib/interactive-tooltip/) to support positioning.
+  Requirements:
+  1. Add an input `position` of type 'top' | 'bottom' | 'left' | 'right' with default 'top'
+  2. Apply a CSS class matching the position value (e.g., class='position-top')
+  3. Add data-test-id='interactive-tooltip-content' to the tooltip content wrapper
+  4. Update Cypress tests to verify each position class is applied
+  5. Update or create test harness with position assertion methods
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Component accepts position input with union type'
+    weight: 1.0
+  - id: AC-02
+    description: "Default position is 'top'"
+    weight: 1.0
+  - id: AC-03
+    description: 'CSS class matches the position value'
+    weight: 1.0
+  - id: AC-04
+    description: 'All four positions are testable via Cypress'
+    weight: 1.5
+  - id: AC-05
+    description: 'Test harness includes position assertion'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/interactive-tooltip/interactive-tooltip.component.ts'
+    pattern: 'position'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/interactive-tooltip/interactive-tooltip.component.ts'
+    pattern: "top.*bottom.*left.*right\\|'top'\\s*\\|\\s*'bottom'"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/interactive-tooltip/interactive-tooltip.component.ts'
+
+grading_metadata:
+  expected_files_changed: 2-4
+  expected_test_count_added: 2-4
+  touches_existing_tests: true
+
+notes: |
+  Easy candidate: straightforward input addition with CSS class binding.
+  Clear deterministic checks.

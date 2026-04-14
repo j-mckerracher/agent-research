@@ -8,14 +8,17 @@ Startup
 
 Environment variables (all optional except DISCORD_BOT_TOKEN when polling)
 ---------------------------------------------------------------------------
-DISCORD_BOT_TOKEN       Bot token — required for Discord polling
-DISCORD_GUILD_NAME      Default: arigato-mr-roboto
-DISCORD_TRIGGER_CHANNEL Default: trigger-agents
-DISCORD_POLL_SECONDS    Default: 10
-ADO_WEBHOOK_SECRET      Shared secret for Azure DevOps service hooks (Basic auth password)
-DEFAULT_REPO            Absolute path used when a trigger omits --repo
-RUNNER_SCRIPT           Explicit path to run_headless.py
-BACKEND                 copilot | claude (auto-detected if unset)
+DISCORD_BOT_TOKEN          Bot token — required for Discord polling
+DISCORD_GUILD_NAME         Default: arigato-mr-roboto
+DISCORD_ADO_CHANNEL        ADO work-item channel      (default: trigger-agents-ado-work)
+DISCORD_GENERAL_CHANNEL    General-purpose channel     (default: trigger-agents-general)
+DISCORD_TRIGGER_CHANNEL    Deprecated alias for DISCORD_ADO_CHANNEL
+DISCORD_POLL_SECONDS       Default: 10
+ADO_WEBHOOK_SECRET         Shared secret for Azure DevOps service hooks (Basic auth password)
+DEFAULT_REPO               Absolute path used when a trigger omits --repo
+RUNNER_SCRIPT              Explicit path to run_headless.py
+GENERAL_RUNNER_SCRIPT      Explicit path to run_general.py
+BACKEND                    copilot | claude (auto-detected if unset)
 """
 
 from __future__ import annotations
@@ -31,6 +34,7 @@ from fastapi import FastAPI, Header, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
 from .actions.run_workflow import RunWorkflowHandler
+from .actions.general_run import GeneralRunHandler
 from .adapters.azure_devops import parse_ado_webhook, verify_basic_auth
 from .adapters.discord import DiscordPollerAdapter
 from .models import (
@@ -74,6 +78,20 @@ def _find_runner_script(default_repo: str) -> Path:
     return Path(default_repo) / "agent-runner" / "run_headless.py"
 
 
+def _find_general_runner_script(default_repo: str) -> Path:
+    """Locate ``run_general.py`` using the same heuristic as the ADO runner."""
+    candidate = Path(default_repo) / "agent-runner" / "run_general.py"
+    if candidate.exists():
+        return candidate
+    current = Path(__file__).resolve().parent
+    for _ in range(6):
+        c = current / "agent-runner" / "run_general.py"
+        if c.exists():
+            return c
+        current = current.parent
+    return Path(default_repo) / "agent-runner" / "run_general.py"
+
+
 # ---------------------------------------------------------------------------
 # App factory — keeps the app fully testable
 # ---------------------------------------------------------------------------
@@ -85,22 +103,43 @@ def create_app(
     discord_token: str | None = None,
     discord_guild_name: str | None = None,
     discord_trigger_channel: str | None = None,
+    discord_ado_channel: str | None = None,
+    discord_general_channel: str | None = None,
     discord_poll_seconds: int | None = None,
     ado_webhook_secret: str | None = None,
     default_repo: str | None = None,
     runner_script: Path | None = None,
+    general_runner_script: Path | None = None,
     backend: str | None = None,
 ) -> FastAPI:
     """Return a configured FastAPI instance.
 
     All parameters default to environment-variable values when *None*.  Pass
     explicit values in tests to avoid reading env vars and to inject fakes.
+
+    Discord channels:
+        ``discord_ado_channel``     — ADO work-item triggers (default: ``trigger-agents-ado-work``)
+        ``discord_general_channel`` — General-purpose triggers (default: ``trigger-agents-general``)
+        ``discord_trigger_channel`` — Deprecated alias for ``discord_ado_channel``
     """
 
     # Resolve config from env if not supplied
     _token = discord_token or os.environ.get("DISCORD_BOT_TOKEN", "")
     _guild = discord_guild_name or os.environ.get("DISCORD_GUILD_NAME", "arigato-mr-roboto")
-    _channel = discord_trigger_channel or os.environ.get("DISCORD_TRIGGER_CHANNEL", "trigger-agents")
+
+    # ADO channel: explicit param > DISCORD_ADO_CHANNEL > DISCORD_TRIGGER_CHANNEL (deprecated) > default
+    _ado_channel = (
+        discord_ado_channel
+        or os.environ.get("DISCORD_ADO_CHANNEL")
+        or discord_trigger_channel
+        or os.environ.get("DISCORD_TRIGGER_CHANNEL")
+        or "trigger-agents-ado-work"
+    )
+    _general_channel = (
+        discord_general_channel
+        or os.environ.get("DISCORD_GENERAL_CHANNEL")
+        or "trigger-agents-general"
+    )
     _poll = discord_poll_seconds or int(os.environ.get("DISCORD_POLL_SECONDS", "10"))
     _ado_secret = ado_webhook_secret if ado_webhook_secret is not None else os.environ.get("ADO_WEBHOOK_SECRET", "")
     _backend = backend or os.environ.get("BACKEND") or None
@@ -112,6 +151,11 @@ def create_app(
         _runner = _find_runner_script(_repo)
     else:
         _runner = runner_script
+
+    if general_runner_script is None:
+        _general_runner = _find_general_runner_script(_repo)
+    else:
+        _general_runner = general_runner_script
 
     # Shared state
     _store = run_store if run_store is not None else RunStore()
@@ -126,30 +170,58 @@ def create_app(
             runner_script=_runner,
             backend=_backend,
         )
-        _registry = {_run_handler.action_name: _run_handler}
+        _general_handler = GeneralRunHandler(
+            run_store=_store,
+            default_repo=_repo,
+            runner_script=_general_runner,
+            backend=_backend,
+        )
+        _registry = {
+            _run_handler.action_name: _run_handler,
+            _general_handler.action_name: _general_handler,
+        }
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
-        # Start Discord polling if a token is configured
-        if _token and "run" in _registry:
-            poller = DiscordPollerAdapter(
-                token=_token,
-                guild_name=_guild,
-                trigger_channel_name=_channel,
-                poll_seconds=_poll,
-                action_handler=_registry["run"],
-                run_store=_store,
-            )
-            task = asyncio.create_task(poller.run(), name="discord-poller")
-        else:
-            task = None
+        tasks: list[asyncio.Task] = []
+
+        if _token:
+            # ADO channel poller
+            if "run" in _registry:
+                ado_poller = DiscordPollerAdapter(
+                    token=_token,
+                    guild_name=_guild,
+                    trigger_channel_name=_ado_channel,
+                    poll_seconds=_poll,
+                    action_handler=_registry["run"],
+                    run_store=_store,
+                    channel_type="ado",
+                )
+                tasks.append(
+                    asyncio.create_task(ado_poller.run(), name="discord-poller-ado")
+                )
+
+            # General channel poller
+            if "general_run" in _registry:
+                general_poller = DiscordPollerAdapter(
+                    token=_token,
+                    guild_name=_guild,
+                    trigger_channel_name=_general_channel,
+                    poll_seconds=_poll,
+                    action_handler=_registry["general_run"],
+                    run_store=_store,
+                    channel_type="general",
+                )
+                tasks.append(
+                    asyncio.create_task(general_poller.run(), name="discord-poller-general")
+                )
 
         yield
 
-        if task is not None:
-            task.cancel()
+        for t in tasks:
+            t.cancel()
             try:
-                await task
+                await t
             except asyncio.CancelledError:
                 pass
 
@@ -186,7 +258,11 @@ def create_app(
     async def trigger(event: TriggerEvent) -> RunRecord:
         """Fire a trigger event from any HTTP client.
 
-        The ``action`` field must match a registered handler (currently ``run``).
+        The ``action`` field must match a registered handler
+        (``run`` for ADO workflows, ``general_run`` for general-purpose runs).
+
+        For ``general_run``, the ``prompt``, ``backend``, and ``repo_path``
+        fields are required.
         """
         handler = _registry.get(event.action)
         if handler is None:
@@ -194,6 +270,22 @@ def create_app(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Unknown action: {event.action!r}",
             )
+
+        # Validate required fields for general_run
+        if event.action == "general_run":
+            missing = []
+            if not event.prompt:
+                missing.append("prompt")
+            if not event.backend:
+                missing.append("backend")
+            if not event.repo_path:
+                missing.append("repo_path")
+            if missing:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"general_run requires: {', '.join(missing)}",
+                )
+
         if _store.has_active(event.change_id):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -238,10 +330,12 @@ def create_app(
     )
     async def cancel_run(change_id: str) -> CancelResponse:
         normalised = change_id.upper() if change_id.upper().startswith("WI-") else f"WI-{change_id.upper()}"
-        handler = _registry.get("run")
         cancelled = False
-        if handler is not None:
-            cancelled = await handler.cancel(normalised)
+        for handler in _registry.values():
+            if hasattr(handler, "cancel"):
+                cancelled = await handler.cancel(normalised)
+                if cancelled:
+                    break
         return CancelResponse(change_id=normalised, cancelled=cancelled)
 
     # ---- Azure DevOps webhook --------------------------------------------

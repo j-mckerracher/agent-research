@@ -1,0 +1,66 @@
+id: BM-019
+name: 'Add note count badge to notes component'
+difficulty_estimate: medium
+description: |
+  Add a badge/counter next to the notes component header showing the total
+  number of notes, with dynamic styling based on count.
+
+story_prompt: |
+  As a developer, I need the notes component
+  (libs/shared/ui/components/src/lib/notes/) to display a note count badge.
+  Requirements:
+  1. Add a badge span with data-test-id='notes-count-badge' near the component header
+  2. Badge shows the total number of notes
+  3. When count is 0, badge has class 'badge-empty' and shows '0'
+  4. When count is 1-5, badge has class 'badge-normal'
+  5. When count > 5, badge has class 'badge-high'
+  6. Use computed() to derive count and class from the notes input
+  7. Add an input `showBadge` (boolean, default true) to toggle badge visibility
+  8. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Badge displays note count'
+    weight: 1.0
+  - id: AC-02
+    description: 'badge-empty class when count is 0'
+    weight: 1.0
+  - id: AC-03
+    description: 'badge-normal class when count is 1-5'
+    weight: 1.0
+  - id: AC-04
+    description: 'badge-high class when count > 5'
+    weight: 1.0
+  - id: AC-05
+    description: 'computed() used for derived state'
+    weight: 1.0
+  - id: AC-06
+    description: 'showBadge input toggles visibility'
+    weight: 1.0
+  - id: AC-07
+    description: 'Cypress tests cover all badge states'
+    weight: 1.5
+  - id: AC-08
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes.component.ts'
+    pattern: "computed\\|badge"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes.component.test-harness.ts'
+    pattern: 'badge'
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-5
+  expected_test_count_added: 4-6
+  touches_existing_tests: true
+
+notes: |
+  Medium difficulty: requires computed signals, conditional CSS class bindings,
+  multiple test scenarios for different count ranges.

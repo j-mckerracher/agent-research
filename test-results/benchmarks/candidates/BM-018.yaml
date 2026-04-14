@@ -1,0 +1,58 @@
+id: BM-018
+name: 'Add CSS theme variable to text-link'
+difficulty_estimate: easy
+description: |
+  Add CSS custom property support to TextLinkComponent so consumers can
+  customize the link color via a CSS variable.
+
+story_prompt: |
+  As a developer, I need the TextLinkComponent
+  (libs/shared/ui/components/src/lib/text-link/) to support theme customization.
+  Requirements:
+  1. Use CSS custom property `--text-link-color` with a default value of '#0066cc'
+  2. Apply the custom property as the color of the anchor element
+  3. Add `--text-link-hover-color` with default '#004499' for hover state
+  4. Add a `color` input (string, default '') that overrides the CSS variable if set
+  5. When color input is non-empty, use it directly via style binding
+  6. Update Cypress tests to verify default color and custom color
+  7. Update test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'CSS custom properties defined with defaults'
+    weight: 1.0
+  - id: AC-02
+    description: 'color input overrides CSS variable when set'
+    weight: 1.5
+  - id: AC-03
+    description: 'Default colors applied from CSS variables'
+    weight: 1.0
+  - id: AC-04
+    description: 'Hover color changes'
+    weight: 1.0
+  - id: AC-05
+    description: 'Cypress tests verify color behavior'
+    weight: 1.5
+  - id: AC-06
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.scss'
+    pattern: '--text-link-color'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+    pattern: 'color'
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.scss'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 2-3
+  touches_existing_tests: true
+
+notes: |
+  Easy candidate: CSS custom properties, style binding, simple tests.

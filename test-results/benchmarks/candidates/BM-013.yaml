@@ -1,0 +1,66 @@
+id: BM-013
+name: 'Add form validation errors to InputComponent'
+difficulty_estimate: hard
+description: |
+  Enhance the InputComponent to display multiple validation error messages
+  with appropriate styling and data-test-ids.
+
+story_prompt: |
+  As a developer, I need the InputComponent
+  (libs/shared/ui/design-system/src/lib/components/input/) to display
+  validation errors properly.
+  Requirements:
+  1. Add a `validationMessages` input of type Record<string, string> mapping
+     error keys to display messages (e.g., { required: 'Field is required', minlength: 'Too short' })
+  2. When displayErrors is true and the form control has errors, show matching
+     error messages from validationMessages
+  3. Each error message in a div with class 'validation-error' and
+     data-test-id='input-error-{errorKey}'
+  4. Show at most one error at a time (first matching)
+  5. Add computed signal that derives the current error message
+  6. Style error messages with red text
+  7. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'validationMessages input exists'
+    weight: 1.0
+  - id: AC-02
+    description: 'Error messages display when form control has errors and displayErrors=true'
+    weight: 1.5
+  - id: AC-03
+    description: 'Only first matching error shown'
+    weight: 1.0
+  - id: AC-04
+    description: 'Correct data-test-ids on error elements'
+    weight: 1.0
+  - id: AC-05
+    description: 'computed() used for deriving error message'
+    weight: 1.0
+  - id: AC-06
+    description: 'Cypress tests cover required, minlength, no-error states'
+    weight: 1.5
+  - id: AC-07
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/lib/components/input/input.component.ts'
+    pattern: 'validationMessages'
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/lib/components/input/input.component.ts'
+    pattern: 'computed'
+
+required_artifacts:
+  - 'libs/shared/ui/design-system/src/lib/components/input/input.component.ts'
+
+grading_metadata:
+  expected_files_changed: 3-5
+  expected_test_count_added: 4-6
+  touches_existing_tests: true
+
+notes: |
+  Hard difficulty: requires understanding reactive forms integration, error
+  state derivation, computed signals with form control observables,
+  conditional template rendering, and multiple test scenarios.

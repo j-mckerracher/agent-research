@@ -1,0 +1,49 @@
+phase: 1
+model: gpt-5-mini (high)
+calibration_date: unknown
+selection_criteria:
+  easy_smoke: '>=80% pass rate, low runtime, zero flakiness'
+  medium_benchmark: 40-79% pass rate, exercises real implementation reasoning
+  hard_stretch: <=39% pass rate or high timeout rate, genuine difficulty
+selected_stories:
+  - id: BM-011
+    name: Add byTestIdNth helper to common-testing
+    role: easy-smoke
+    measured_difficulty: easy
+    pass_rate: 1.0
+    file: BM-011.yaml
+  - id: BM-021
+    name: Add locator constants to testing library
+    role: easy-smoke
+    measured_difficulty: easy
+    pass_rate: 1.0
+    file: BM-021.yaml
+  - id: BM-003
+    name: Add character counter to note-input component
+    role: medium-benchmark
+    measured_difficulty: medium
+    pass_rate: 0.6
+    file: BM-003.yaml
+  - id: BM-010
+    name: Add note sorting to notes-container
+    role: medium-benchmark
+    measured_difficulty: medium
+    pass_rate: 0.6
+    file: BM-010.yaml
+  - id: BM-006
+    name: Add search/filter to notes component
+    role: medium-benchmark
+    measured_difficulty: medium
+    pass_rate: 0.4
+    file: BM-006.yaml
+  - id: BM-018
+    name: Add CSS theme variable to text-link
+    role: hard-stretch
+    measured_difficulty: medium
+    pass_rate: 0.4
+    file: BM-018.yaml
+reserve_stories:
+  - id: BM-001
+    reason: 100% pass easy, redundant with BM-011/BM-021 but available as backup smoke
+  - id: BM-015
+    reason: 100% pass, estimated medium but measured easy, good reserve if more easy stories needed

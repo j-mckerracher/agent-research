@@ -1,0 +1,67 @@
+id: BM-004
+name: 'Add copy-to-clipboard to PersonIdLinkComponent'
+difficulty_estimate: medium
+description: |
+  Add a small copy button next to the person ID link that copies the person ID
+  to the clipboard when clicked. Show a brief "Copied!" tooltip for 2 seconds.
+
+story_prompt: |
+  As a developer, I need the PersonIdLinkComponent
+  (libs/shared/ui/components/src/lib/person-id-link/) to include a copy button.
+  Requirements:
+  1. Add a small button with data-test-id='person-id-copy-btn' next to the link
+  2. Clicking the button copies personId() to the clipboard via navigator.clipboard.writeText
+  3. After copying, show a span with text 'Copied!' and data-test-id='person-id-copied-msg'
+  4. The 'Copied!' message disappears after 2 seconds
+  5. Use signals to manage the copied state
+  6. Update the component, template, styles, test harness, and Cypress tests
+  7. Edge case: if clipboard API fails, show 'Copy failed' message instead
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Copy button exists with correct data-test-id'
+    weight: 1.0
+  - id: AC-02
+    description: 'Clicking copy button writes personId to clipboard'
+    weight: 1.5
+  - id: AC-03
+    description: "'Copied!' message appears after click"
+    weight: 1.0
+  - id: AC-04
+    description: 'Message disappears after timeout'
+    weight: 1.0
+  - id: AC-05
+    description: "Error case handled with 'Copy failed' message"
+    weight: 1.0
+  - id: AC-06
+    description: 'Cypress tests cover copy success and message display'
+    weight: 1.5
+  - id: AC-07
+    description: 'Test harness updated with copy-related methods'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.ts'
+    pattern: "clipboard\\|copy"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.html'
+    pattern: 'person-id-copy-btn'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.test-harness.ts'
+    pattern: "copy\\|copied"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.ts'
+  - 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.html'
+  - 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-5
+  expected_test_count_added: 3-5
+  touches_existing_tests: true
+
+notes: |
+  Medium difficulty: requires async clipboard API, signal-based state for
+  copied/failed message, setTimeout logic, error handling, and Cypress
+  test stubbing for navigator.clipboard.

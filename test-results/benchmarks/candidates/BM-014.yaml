@@ -1,0 +1,58 @@
+id: BM-014
+name: 'Add empty state to notes-container'
+difficulty_estimate: easy
+description: |
+  Add an empty state message to the notes container when there are no notes.
+
+story_prompt: |
+  As a developer, I need the notes-container component
+  (libs/shared/ui/components/src/lib/notes/notes-container/) to show
+  an empty state.
+  Requirements:
+  1. When the notes array is empty, show a div with data-test-id='notes-empty-state'
+  2. The empty state should contain text 'No notes yet'
+  3. Add an optional `emptyMessage` input (string, default 'No notes yet')
+     to customize the message
+  4. The empty state div should have CSS class 'empty-state'
+  5. When notes exist, do NOT show the empty state
+  6. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Empty state shown when no notes'
+    weight: 1.5
+  - id: AC-02
+    description: "Default message is 'No notes yet'"
+    weight: 1.0
+  - id: AC-03
+    description: 'emptyMessage input allows customization'
+    weight: 1.0
+  - id: AC-04
+    description: 'Empty state hidden when notes exist'
+    weight: 1.5
+  - id: AC-05
+    description: 'Cypress tests cover both states'
+    weight: 1.5
+  - id: AC-06
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.ts'
+    pattern: "emptyMessage\\|empty"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.test-harness.ts'
+    pattern: 'empty'
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 2-4
+  touches_existing_tests: true
+
+notes: |
+  Easy candidate: straightforward conditional rendering with @if.

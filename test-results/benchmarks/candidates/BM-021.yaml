@@ -1,0 +1,60 @@
+id: BM-021
+name: 'Add locator constants to testing library'
+difficulty_estimate: easy
+description: |
+  Add a new set of locator constants for the design-system components
+  to the testing library.
+
+story_prompt: |
+  As a developer, I need to add new locator constants to the design-system
+  testing library (libs/shared/ui/design-system/src/testing/locators.ts).
+  Requirements:
+  1. Add locator constants for the sidebar component:
+     - sidebarContainer: data-test-id='sidebar-container'
+     - sidebarToggle: data-test-id='sidebar-toggle'
+     - sidebarContent: data-test-id='sidebar-content'
+     - sidebarOverlay: data-test-id='sidebar-overlay'
+  2. Add locator constants for the column-customization component:
+     - columnCustomizationContainer: data-test-id='column-customization-container'
+     - columnCustomizationToggle: data-test-id='column-customization-toggle'
+     - columnCustomizationList: data-test-id='column-customization-list'
+  3. Use the selectByDataTestId helper from @rls/common-testing
+  4. Export all new constants
+  5. Add Jest tests verifying the locator values
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Sidebar locator constants exist and use selectByDataTestId'
+    weight: 1.5
+  - id: AC-02
+    description: 'Column customization locator constants exist'
+    weight: 1.5
+  - id: AC-03
+    description: 'All constants exported'
+    weight: 1.0
+  - id: AC-04
+    description: 'Jest tests verify locator values'
+    weight: 1.5
+  - id: AC-05
+    description: 'Uses @rls/common-testing import'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/testing/locators.ts'
+    pattern: "sidebarContainer\\|sidebar-container"
+  - type: grep_match
+    file: 'libs/shared/ui/design-system/src/testing/locators.ts'
+    pattern: "columnCustomization\\|column-customization"
+
+required_artifacts:
+  - 'libs/shared/ui/design-system/src/testing/locators.ts'
+
+grading_metadata:
+  expected_files_changed: 1-2
+  expected_test_count_added: 3-7
+  touches_existing_tests: false
+
+notes: |
+  Easy candidate: pure data/constants work. No component logic.
+  Good for testing agent's ability to follow patterns.

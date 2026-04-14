@@ -1,0 +1,71 @@
+id: BM-006
+name: 'Add search/filter to notes component'
+difficulty_estimate: hard
+description: |
+  Add a search input to the notes component that filters displayed notes
+  in real-time based on note text content.
+
+story_prompt: |
+  As a developer, I need the notes component
+  (libs/shared/ui/components/src/lib/notes/) to support filtering.
+  Requirements:
+  1. Add a text input with data-test-id='notes-search-input' above the notes list
+  2. As the user types, filter the displayed notes to only show those whose text
+     contains the search string (case-insensitive)
+  3. Show a "No matching notes" message with data-test-id='notes-no-results' when
+     filter yields zero results
+  4. Show the count of filtered notes "Showing X of Y" with data-test-id='notes-filter-count'
+  5. Clear the filter when the search input is emptied
+  6. Use signals and computed() for the filtering logic
+  7. Update the notes component, its template, test harness, and Cypress tests
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Search input exists above the notes list'
+    weight: 1.0
+  - id: AC-02
+    description: 'Notes are filtered in real-time as user types'
+    weight: 1.5
+  - id: AC-03
+    description: 'Filtering is case-insensitive'
+    weight: 1.0
+  - id: AC-04
+    description: "'No matching notes' message shown when zero results"
+    weight: 1.0
+  - id: AC-05
+    description: "'Showing X of Y' count is displayed and accurate"
+    weight: 1.0
+  - id: AC-06
+    description: 'Clearing search shows all notes again'
+    weight: 1.0
+  - id: AC-07
+    description: 'Cypress tests cover filter, no-results, and clear scenarios'
+    weight: 1.5
+  - id: AC-08
+    description: 'Test harness includes filter-related methods'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes.component.ts'
+    pattern: "computed\\|signal"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes.component.ts'
+    pattern: "filter\\|search"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes.component.test-harness.ts'
+    pattern: "search\\|filter"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-5
+  expected_test_count_added: 4-6
+  touches_existing_tests: true
+
+notes: |
+  Hard candidate: requires understanding the notes component's structure,
+  adding signal-based filtering, computed derived state, template changes
+  across nested components, and comprehensive test coverage.

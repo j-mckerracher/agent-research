@@ -1,0 +1,62 @@
+id: BM-007
+name: 'Add external link icon to TextLinkComponent'
+difficulty_estimate: easy
+description: |
+  Add an optional boolean input to TextLinkComponent that shows a small
+  external-link icon (Unicode ↗) after the link text when the URL points
+  to an external domain.
+
+story_prompt: |
+  As a developer, I need the TextLinkComponent
+  (libs/shared/ui/components/src/lib/text-link/) to indicate external links.
+  Requirements:
+  1. Add boolean input `showExternalIcon` (default false)
+  2. When showExternalIcon is true, append a span with text ' ↗' and
+     data-test-id='text-link-external-icon' after the link text
+  3. The icon span should have CSS class 'external-icon'
+  4. When showExternalIcon is false, no icon is shown
+  5. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'showExternalIcon input exists with default false'
+    weight: 1.0
+  - id: AC-02
+    description: 'External icon span renders when showExternalIcon=true'
+    weight: 1.5
+  - id: AC-03
+    description: 'Icon has correct data-test-id and CSS class'
+    weight: 1.0
+  - id: AC-04
+    description: 'Icon does not render when showExternalIcon=false'
+    weight: 1.0
+  - id: AC-05
+    description: 'Cypress tests cover both states'
+    weight: 1.5
+  - id: AC-06
+    description: 'Test harness updated with icon assertions'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+    pattern: "showExternalIcon\\|externalIcon"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.cy.ts'
+    pattern: 'external'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.test-harness.ts'
+    pattern: "external\\|icon"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.cy.ts'
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 2-3
+  touches_existing_tests: true
+
+notes: |
+  Easy candidate: simple boolean input, conditional rendering, clear checks.

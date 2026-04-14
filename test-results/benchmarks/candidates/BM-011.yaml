@@ -1,0 +1,59 @@
+id: BM-011
+name: 'Add byTestIdNth helper to common-testing'
+difficulty_estimate: easy
+description: |
+  Add a new utility function to the common-testing library that returns
+  a selector for the Nth element with a given data-test-id.
+
+story_prompt: |
+  As a developer, I need a new utility function in the common-testing library
+  (libs/shared/common-testing/src/lib/test-helper.ts).
+  Requirements:
+  1. Add function `byTestIdNth(id: string, n: number): string` that returns
+     `[data-test-id=${id}]:nth-of-type(${n})`
+  2. Add function `byTestIdContains(id: string, text: string): string` that returns
+     `[data-test-id=${id}]:contains("${text}")`
+  3. Export both functions from the library's public API
+  4. Add Jest unit tests in a new or existing spec file for both functions
+  5. Test edge cases: n=0, n=1, negative n, empty text
+  6. Add JSDoc documentation for both functions
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'byTestIdNth function exists and returns correct selector'
+    weight: 1.5
+  - id: AC-02
+    description: 'byTestIdContains function exists and returns correct selector'
+    weight: 1.5
+  - id: AC-03
+    description: 'Both functions exported from public API'
+    weight: 1.0
+  - id: AC-04
+    description: 'Jest tests cover normal and edge cases'
+    weight: 1.5
+  - id: AC-05
+    description: 'JSDoc documentation added'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/common-testing/src/lib/test-helper.ts'
+    pattern: 'byTestIdNth'
+  - type: grep_match
+    file: 'libs/shared/common-testing/src/lib/test-helper.ts'
+    pattern: 'byTestIdContains'
+  - type: grep_match
+    file: 'libs/shared/common-testing/src/lib/test-helper.ts'
+    pattern: "nth-of-type\\|contains"
+
+required_artifacts:
+  - 'libs/shared/common-testing/src/lib/test-helper.ts'
+
+grading_metadata:
+  expected_files_changed: 2-3
+  expected_test_count_added: 4-8
+  touches_existing_tests: false
+
+notes: |
+  Easy candidate: pure utility function addition, Jest-testable,
+  no component complexity. Good smoke test.

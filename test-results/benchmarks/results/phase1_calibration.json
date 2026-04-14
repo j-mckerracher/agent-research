@@ -1,0 +1,1286 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-04-11T20:04:29Z",
+  "calibration_params": {
+    "model": "gpt-5-mini",
+    "effort": "high",
+    "cli": "copilot",
+    "trials_per_candidate": 5
+  },
+  "candidates": [
+    {
+      "story_id": "BM-001",
+      "name": "Add maxLength input to TextLinkComponent",
+      "difficulty_estimate": "easy",
+      "measured_difficulty": "easy",
+      "pass_rate": 1.0,
+      "avg_weighted_score": 1.0,
+      "avg_runtime": 300.71,
+      "flakiness_score": 0.0,
+      "trials": [
+        {
+          "story_id": "BM-001",
+          "trial_number": 1,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true,
+            "HC-03": true
+          },
+          "runtime_seconds": 310.12,
+          "files_changed": 6,
+          "copilot_output_length": 1308,
+          "error_message": "",
+          "timestamp": "2026-04-11T16:12:44Z"
+        },
+        {
+          "story_id": "BM-001",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true,
+            "HC-03": true
+          },
+          "runtime_seconds": 154.62,
+          "files_changed": 0,
+          "copilot_output_length": 1422,
+          "error_message": "",
+          "timestamp": "2026-04-11T16:17:55Z"
+        },
+        {
+          "story_id": "BM-001",
+          "trial_number": 3,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true,
+            "HC-03": true
+          },
+          "runtime_seconds": 313.99,
+          "files_changed": 6,
+          "copilot_output_length": 1299,
+          "error_message": "",
+          "timestamp": "2026-04-11T16:20:30Z"
+        },
+        {
+          "story_id": "BM-001",
+          "trial_number": 4,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true,
+            "HC-03": true
+          },
+          "runtime_seconds": 485.34,
+          "files_changed": 0,
+          "copilot_output_length": 1156,
+          "error_message": "",
+          "timestamp": "2026-04-11T16:25:44Z"
+        },
+        {
+          "story_id": "BM-001",
+          "trial_number": 5,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true,
+            "HC-03": true
+          },
+          "runtime_seconds": 239.46,
+          "files_changed": 6,
+          "copilot_output_length": 798,
+          "error_message": "",
+          "timestamp": "2026-04-11T16:33:50Z"
+        }
+      ]
+    },
+    {
+      "story_id": "BM-003",
+      "name": "Add character counter to note-input component",
+      "difficulty_estimate": "medium",
+      "measured_difficulty": "medium",
+      "pass_rate": 0.6,
+      "avg_weighted_score": 0.6,
+      "avg_runtime": 447.95,
+      "flakiness_score": 0.96,
+      "trials": [
+        {
+          "story_id": "BM-003",
+          "trial_number": 1,
+          "status": "error",
+          "exit_code": -1,
+          "gate_results": {
+            "HG-01": false
+          },
+          "ac_scores": {},
+          "weighted_ac_score": 0.0,
+          "hidden_check_results": {},
+          "runtime_seconds": 600.03902879206,
+          "files_changed": 0,
+          "copilot_output_length": 0,
+          "error_message": "Timeout",
+          "timestamp": "2026-04-11T16:37:49Z"
+        },
+        {
+          "story_id": "BM-003",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 203.34,
+          "files_changed": 10,
+          "copilot_output_length": 1862,
+          "error_message": "",
+          "timestamp": "2026-04-11T16:47:50Z"
+        },
+        {
+          "story_id": "BM-003",
+          "trial_number": 3,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 273.14,
+          "files_changed": 11,
+          "copilot_output_length": 1461,
+          "error_message": "",
+          "timestamp": "2026-04-11T16:51:13Z"
+        },
+        {
+          "story_id": "BM-003",
+          "trial_number": 4,
+          "status": "error",
+          "exit_code": -1,
+          "gate_results": {
+            "HG-01": false
+          },
+          "ac_scores": {},
+          "weighted_ac_score": 0.0,
+          "hidden_check_results": {},
+          "runtime_seconds": 600.0330787089188,
+          "files_changed": 0,
+          "copilot_output_length": 0,
+          "error_message": "Timeout",
+          "timestamp": "2026-04-11T16:55:47Z"
+        },
+        {
+          "story_id": "BM-003",
+          "trial_number": 5,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 563.19,
+          "files_changed": 6,
+          "copilot_output_length": 2181,
+          "error_message": "",
+          "timestamp": "2026-04-11T17:05:47Z"
+        }
+      ]
+    },
+    {
+      "story_id": "BM-006",
+      "name": "Add search/filter to notes component",
+      "difficulty_estimate": "hard",
+      "measured_difficulty": "medium",
+      "pass_rate": 0.4,
+      "avg_weighted_score": 0.748,
+      "avg_runtime": 467.18,
+      "flakiness_score": 0.96,
+      "trials": [
+        {
+          "story_id": "BM-006",
+          "trial_number": 1,
+          "status": "gate_fail",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": false
+          },
+          "ac_scores": {
+            "AC-01": 0.5800000000000001,
+            "AC-02": 0.5800000000000001,
+            "AC-03": 0.5800000000000001,
+            "AC-04": 0.5800000000000001,
+            "AC-05": 0.5800000000000001,
+            "AC-06": 0.5800000000000001,
+            "AC-07": 0.5800000000000001,
+            "AC-08": 0.5800000000000001
+          },
+          "weighted_ac_score": 0.58,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": false,
+            "HC-02": false
+          },
+          "runtime_seconds": 585.07,
+          "files_changed": 9,
+          "copilot_output_length": 1130,
+          "error_message": "",
+          "timestamp": "2026-04-11T17:15:11Z"
+        },
+        {
+          "story_id": "BM-006",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0,
+            "AC-08": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 584.07,
+          "files_changed": 10,
+          "copilot_output_length": 1910,
+          "error_message": "",
+          "timestamp": "2026-04-11T17:24:56Z"
+        },
+        {
+          "story_id": "BM-006",
+          "trial_number": 3,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0,
+            "AC-08": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 335.36,
+          "files_changed": 9,
+          "copilot_output_length": 1292,
+          "error_message": "",
+          "timestamp": "2026-04-11T17:34:41Z"
+        },
+        {
+          "story_id": "BM-006",
+          "trial_number": 4,
+          "status": "gate_fail",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": false
+          },
+          "ac_scores": {
+            "AC-01": 0.5800000000000001,
+            "AC-02": 0.5800000000000001,
+            "AC-03": 0.5800000000000001,
+            "AC-04": 0.5800000000000001,
+            "AC-05": 0.5800000000000001,
+            "AC-06": 0.5800000000000001,
+            "AC-07": 0.5800000000000001,
+            "AC-08": 0.5800000000000001
+          },
+          "weighted_ac_score": 0.58,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": false,
+            "HC-02": false
+          },
+          "runtime_seconds": 334.82,
+          "files_changed": 10,
+          "copilot_output_length": 1990,
+          "error_message": "",
+          "timestamp": "2026-04-11T17:40:16Z"
+        },
+        {
+          "story_id": "BM-006",
+          "trial_number": 5,
+          "status": "gate_fail",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": false
+          },
+          "ac_scores": {
+            "AC-01": 0.5800000000000001,
+            "AC-02": 0.5800000000000001,
+            "AC-03": 0.5800000000000001,
+            "AC-04": 0.5800000000000001,
+            "AC-05": 0.5800000000000001,
+            "AC-06": 0.5800000000000001,
+            "AC-07": 0.5800000000000001,
+            "AC-08": 0.5800000000000001
+          },
+          "weighted_ac_score": 0.58,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": false,
+            "HC-02": false
+          },
+          "runtime_seconds": 496.6,
+          "files_changed": 10,
+          "copilot_output_length": 1391,
+          "error_message": "",
+          "timestamp": "2026-04-11T17:45:51Z"
+        }
+      ]
+    },
+    {
+      "story_id": "BM-010",
+      "name": "Add note sorting to notes-container",
+      "difficulty_estimate": "medium",
+      "measured_difficulty": "medium",
+      "pass_rate": 0.6,
+      "avg_weighted_score": 0.6,
+      "avg_runtime": 421.04,
+      "flakiness_score": 0.96,
+      "trials": [
+        {
+          "story_id": "BM-010",
+          "trial_number": 1,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 382.52,
+          "files_changed": 10,
+          "copilot_output_length": 1665,
+          "error_message": "",
+          "timestamp": "2026-04-11T17:54:09Z"
+        },
+        {
+          "story_id": "BM-010",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 240.16,
+          "files_changed": 10,
+          "copilot_output_length": 1753,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:00:32Z"
+        },
+        {
+          "story_id": "BM-010",
+          "trial_number": 3,
+          "status": "error",
+          "exit_code": -1,
+          "gate_results": {
+            "HG-01": false
+          },
+          "ac_scores": {},
+          "weighted_ac_score": 0.0,
+          "hidden_check_results": {},
+          "runtime_seconds": 600.0535880000098,
+          "files_changed": 0,
+          "copilot_output_length": 0,
+          "error_message": "Timeout",
+          "timestamp": "2026-04-11T18:04:32Z"
+        },
+        {
+          "story_id": "BM-010",
+          "trial_number": 4,
+          "status": "error",
+          "exit_code": -1,
+          "gate_results": {
+            "HG-01": false
+          },
+          "ac_scores": {},
+          "weighted_ac_score": 0.0,
+          "hidden_check_results": {},
+          "runtime_seconds": 600.0407685830723,
+          "files_changed": 0,
+          "copilot_output_length": 0,
+          "error_message": "Timeout",
+          "timestamp": "2026-04-11T18:14:32Z"
+        },
+        {
+          "story_id": "BM-010",
+          "trial_number": 5,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 282.44,
+          "files_changed": 10,
+          "copilot_output_length": 1115,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:24:33Z"
+        }
+      ]
+    },
+    {
+      "story_id": "BM-011",
+      "name": "Add byTestIdNth helper to common-testing",
+      "difficulty_estimate": "easy",
+      "measured_difficulty": "easy",
+      "pass_rate": 1.0,
+      "avg_weighted_score": 1.0,
+      "avg_runtime": 139.85,
+      "flakiness_score": 0.0,
+      "trials": [
+        {
+          "story_id": "BM-011",
+          "trial_number": 1,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 122.55,
+          "files_changed": 7,
+          "copilot_output_length": 1211,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:31:59Z"
+        },
+        {
+          "story_id": "BM-011",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 162.62,
+          "files_changed": 7,
+          "copilot_output_length": 1084,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:34:02Z"
+        },
+        {
+          "story_id": "BM-011",
+          "trial_number": 3,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 146.29,
+          "files_changed": 7,
+          "copilot_output_length": 1438,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:36:45Z"
+        },
+        {
+          "story_id": "BM-011",
+          "trial_number": 4,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 121.62,
+          "files_changed": 7,
+          "copilot_output_length": 1281,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:39:12Z"
+        },
+        {
+          "story_id": "BM-011",
+          "trial_number": 5,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 146.19,
+          "files_changed": 7,
+          "copilot_output_length": 775,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:41:14Z"
+        }
+      ]
+    },
+    {
+      "story_id": "BM-015",
+      "name": "Add read/unread state to note component",
+      "difficulty_estimate": "medium",
+      "measured_difficulty": "easy",
+      "pass_rate": 1.0,
+      "avg_weighted_score": 1.0,
+      "avg_runtime": 306.57,
+      "flakiness_score": 0.0,
+      "trials": [
+        {
+          "story_id": "BM-015",
+          "trial_number": 1,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 306.09,
+          "files_changed": 11,
+          "copilot_output_length": 1135,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:43:40Z"
+        },
+        {
+          "story_id": "BM-015",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 333.8,
+          "files_changed": 11,
+          "copilot_output_length": 1610,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:48:47Z"
+        },
+        {
+          "story_id": "BM-015",
+          "trial_number": 3,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 326.95,
+          "files_changed": 11,
+          "copilot_output_length": 1250,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:54:21Z"
+        },
+        {
+          "story_id": "BM-015",
+          "trial_number": 4,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 261.39,
+          "files_changed": 6,
+          "copilot_output_length": 1617,
+          "error_message": "",
+          "timestamp": "2026-04-11T18:59:48Z"
+        },
+        {
+          "story_id": "BM-015",
+          "trial_number": 5,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true,
+            "HC-02": true
+          },
+          "runtime_seconds": 304.63,
+          "files_changed": 11,
+          "copilot_output_length": 1243,
+          "error_message": "",
+          "timestamp": "2026-04-11T19:04:09Z"
+        }
+      ]
+    },
+    {
+      "story_id": "BM-018",
+      "name": "Add CSS theme variable to text-link",
+      "difficulty_estimate": "easy",
+      "measured_difficulty": "medium",
+      "pass_rate": 0.4,
+      "avg_weighted_score": 0.4,
+      "avg_runtime": 477.37,
+      "flakiness_score": 0.96,
+      "trials": [
+        {
+          "story_id": "BM-018",
+          "trial_number": 1,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 207.93,
+          "files_changed": 10,
+          "copilot_output_length": 1603,
+          "error_message": "",
+          "timestamp": "2026-04-11T19:09:15Z"
+        },
+        {
+          "story_id": "BM-018",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 378.85,
+          "files_changed": 11,
+          "copilot_output_length": 1889,
+          "error_message": "",
+          "timestamp": "2026-04-11T19:12:43Z"
+        },
+        {
+          "story_id": "BM-018",
+          "trial_number": 3,
+          "status": "error",
+          "exit_code": -1,
+          "gate_results": {
+            "HG-01": false
+          },
+          "ac_scores": {},
+          "weighted_ac_score": 0.0,
+          "hidden_check_results": {},
+          "runtime_seconds": 600.0399334579706,
+          "files_changed": 0,
+          "copilot_output_length": 0,
+          "error_message": "Timeout",
+          "timestamp": "2026-04-11T19:19:02Z"
+        },
+        {
+          "story_id": "BM-018",
+          "trial_number": 4,
+          "status": "error",
+          "exit_code": -1,
+          "gate_results": {
+            "HG-01": false
+          },
+          "ac_scores": {},
+          "weighted_ac_score": 0.0,
+          "hidden_check_results": {},
+          "runtime_seconds": 600.0253314999864,
+          "files_changed": 0,
+          "copilot_output_length": 0,
+          "error_message": "Timeout",
+          "timestamp": "2026-04-11T19:29:02Z"
+        },
+        {
+          "story_id": "BM-018",
+          "trial_number": 5,
+          "status": "error",
+          "exit_code": -1,
+          "gate_results": {
+            "HG-01": false
+          },
+          "ac_scores": {},
+          "weighted_ac_score": 0.0,
+          "hidden_check_results": {},
+          "runtime_seconds": 600.0217241669307,
+          "files_changed": 0,
+          "copilot_output_length": 0,
+          "error_message": "Timeout",
+          "timestamp": "2026-04-11T19:39:03Z"
+        }
+      ]
+    },
+    {
+      "story_id": "BM-021",
+      "name": "Add locator constants to testing library",
+      "difficulty_estimate": "easy",
+      "measured_difficulty": "easy",
+      "pass_rate": 1.0,
+      "avg_weighted_score": 1.0,
+      "avg_runtime": 184.95,
+      "flakiness_score": 0.0,
+      "trials": [
+        {
+          "story_id": "BM-021",
+          "trial_number": 1,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 208.97,
+          "files_changed": 7,
+          "copilot_output_length": 1480,
+          "error_message": "",
+          "timestamp": "2026-04-11T19:49:03Z"
+        },
+        {
+          "story_id": "BM-021",
+          "trial_number": 2,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 161.15,
+          "files_changed": 7,
+          "copilot_output_length": 1428,
+          "error_message": "",
+          "timestamp": "2026-04-11T19:52:32Z"
+        },
+        {
+          "story_id": "BM-021",
+          "trial_number": 3,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 137.97,
+          "files_changed": 7,
+          "copilot_output_length": 1098,
+          "error_message": "",
+          "timestamp": "2026-04-11T19:55:14Z"
+        },
+        {
+          "story_id": "BM-021",
+          "trial_number": 4,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 240.51,
+          "files_changed": 7,
+          "copilot_output_length": 1562,
+          "error_message": "",
+          "timestamp": "2026-04-11T19:57:32Z"
+        },
+        {
+          "story_id": "BM-021",
+          "trial_number": 5,
+          "status": "pass",
+          "exit_code": 0,
+          "gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "runtime_seconds": 176.16,
+          "files_changed": 7,
+          "copilot_output_length": 1074,
+          "error_message": "",
+          "timestamp": "2026-04-11T20:01:33Z"
+        }
+      ]
+    }
+  ]
+}

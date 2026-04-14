@@ -1,0 +1,71 @@
+id: BM-022
+name: 'Add expandable/collapsible note component'
+difficulty_estimate: hard
+description: |
+  Add expand/collapse functionality to the note component for long notes.
+
+story_prompt: |
+  As a developer, I need the note component
+  (libs/shared/ui/components/src/lib/notes/notes-container/note/)
+  to support expand/collapse for long notes.
+  Requirements:
+  1. Add input `maxLines` (number, default 3) — max visible lines before collapse
+  2. When note text exceeds maxLines, show only maxLines of text and a
+     'Show more' button with data-test-id='note-expand-btn'
+  3. Clicking 'Show more' expands to full text and changes button to 'Show less'
+     with data-test-id='note-collapse-btn'
+  4. Use a signal `isExpanded` (default false) to manage state
+  5. Apply CSS line-clamp for the truncation effect
+  6. Add computed signal for button text ('Show more' vs 'Show less')
+  7. When note text is short (fits within maxLines), do not show button
+  8. Update Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'maxLines input exists with default 3'
+    weight: 1.0
+  - id: AC-02
+    description: 'Long notes truncated with CSS line-clamp'
+    weight: 1.5
+  - id: AC-03
+    description: "'Show more' button appears for long notes"
+    weight: 1.0
+  - id: AC-04
+    description: 'Button toggles between expand/collapse'
+    weight: 1.5
+  - id: AC-05
+    description: 'Short notes show no button'
+    weight: 1.0
+  - id: AC-06
+    description: 'Signals used for state management'
+    weight: 1.0
+  - id: AC-07
+    description: 'Cypress tests cover expand, collapse, and short-note scenarios'
+    weight: 1.5
+  - id: AC-08
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+    pattern: "maxLines\\|isExpanded\\|expanded"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+    pattern: "signal\\|computed"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.test-harness.ts'
+    pattern: "expand\\|collapse"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/note/note.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-5
+  expected_test_count_added: 4-6
+  touches_existing_tests: true
+
+notes: |
+  Hard difficulty: requires CSS line-clamp, ResizeObserver or element measurement,
+  signal state management, computed signals, multiple interactive test scenarios.

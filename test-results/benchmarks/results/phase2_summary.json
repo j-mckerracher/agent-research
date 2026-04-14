@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-04-12T11:48:04Z",
+  "model": "gpt-5-mini",
+  "stories_run": 1,
+  "total_trials": 1,
+  "passing_trials": 1,
+  "overall_pass_rate": 1.0,
+  "pass_at_1": 1.0,
+  "pass_at_3": 1.0,
+  "mean_ac_score_passing": 1.0,
+  "median_retries": 3,
+  "median_runtime_seconds": 2131.68,
+  "failure_modes": {},
+  "per_story": {
+    "BM-010": {
+      "role": "medium-benchmark",
+      "measured_difficulty": "medium",
+      "pass_rate": 1.0,
+      "pass_at_1": 1.0,
+      "pass_at_3": 1.0,
+      "avg_weighted_score": 1.0,
+      "avg_runtime": 2131.68
+    }
+  }
+}

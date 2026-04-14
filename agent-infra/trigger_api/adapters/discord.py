@@ -3,10 +3,17 @@
 All Discord REST calls use stdlib urllib (zero extra deps).  The polling loop
 is an async coroutine run via asyncio.create_task() from the lifespan context.
 
-The Discord adapter integrates with RunWorkflowHandler in a special way: when
-a RUN: message is detected it manages its own background *thread* (not asyncio
-task) so it can run a threading.Queue-based line streamer alongside the
-subprocess — preserving the original streaming behaviour.
+Two channels are polled by separate DiscordPollerAdapter instances:
+
+* **trigger-agents-ado-work** — ADO work-item triggers.  Messages use the
+  format ``RUN: <change-id> [backend]``.  Parsed by :func:`parse_trigger`.
+
+* **trigger-agents-general** — General-purpose agent triggers.  Messages use
+  the format ``RUN: --backend <backend> --prompt "<text>" --repo <path>
+  [--model <id>] [--agent <file>]``.  Parsed by :func:`parse_general_trigger`.
+
+Both pollers share the same streaming-to-thread + Discord-thread output
+pattern via ``stream_output_to_discord``.
 """
 
 from __future__ import annotations
@@ -35,8 +42,62 @@ DISCORD_API_BASE = "https://discord.com/api/v10"
 DISCORD_MAX_CHARS = 1900
 OUTPUT_FLUSH_LINES = 20
 OUTPUT_FLUSH_SECONDS = 30
+_EVENT_PREFIX = "##EVENT##"
+HEARTBEAT_INTERVAL_SECONDS = 180
 
 RUN_PREFIX = "RUN:"
+HELP_PREFIX = "HELP:"
+
+_BACKEND_KEYWORDS: frozenset[str] = frozenset({"copilot", "claude"})
+
+HELP_MESSAGE_ADO = """\
+**🤖 ADO Workflow Trigger — command reference**
+
+**Start an ADO work-item run:**
+```
+RUN: <change-id> [repo-path] [backend]
+```
+**Arguments:**
+• `change-id` — Work item ID *(required)*. Accepts `WI-5002532` or bare `5002532`.
+• `repo-path` — Absolute path to the repository root *(optional)*. Uses the server default when omitted.
+• `backend` — AI backend to use: `claude` or `copilot` *(optional)*. Auto-detected when omitted.
+
+**Examples:**
+```
+RUN: WI-5002532
+RUN: WI-5002532 claude
+RUN: WI-5002532 /Users/you/Code/my-repo claude
+```
+Type `HELP:` at any time to see this message again.\
+"""
+
+# Keep backward-compat alias
+HELP_MESSAGE = HELP_MESSAGE_ADO
+
+HELP_MESSAGE_GENERAL = """\
+**🤖 General Agent Trigger — command reference**
+
+**Start a general run:**
+```
+RUN: --backend <claude|copilot> --prompt "<prompt>" --repo <path> [--model <model>] [--agent <file>]
+```
+**Required arguments:**
+• `--backend` — AI backend: `claude` or `copilot`.
+• `--prompt` — The prompt to send (wrap in quotes).
+• `--repo` — Absolute path to the repository.
+
+**Optional arguments:**
+• `--model` — Model identifier (e.g. `sonnet`, `opus`, `gpt-4.1`).
+• `--agent` — Path to an `.agent.md` file.
+• Any extra `--key value` pairs are passed through as metadata.
+
+**Examples:**
+```
+RUN: --backend claude --prompt "Fix failing tests" --repo /Users/you/Code/my-repo
+RUN: --backend claude --model sonnet --prompt "Add unit tests" --repo /path --agent spike.agent.md
+```
+Type `HELP:` at any time to see this message again.\
+"""
 
 # ---------------------------------------------------------------------------
 # Low-level REST helpers
@@ -148,23 +209,309 @@ def get_channel_messages(
 # ---------------------------------------------------------------------------
 
 
-def parse_trigger(content: str) -> tuple[str, str | None] | None:
+def parse_trigger(content: str) -> tuple[str, str | None, str | None] | None:
     """Parse a ``RUN:`` message.
 
-    Returns ``(change_id, repo_path_or_None)`` or ``None`` if not a trigger.
+    Accepted forms::
+
+        RUN: <change-id>
+        RUN: <change-id> <backend>
+        RUN: <change-id> <repo-path>
+        RUN: <change-id> <repo-path> <backend>
+
+    Where ``<backend>`` is ``claude`` or ``copilot`` (case-insensitive) and
+    ``<repo-path>`` is any other token (or multi-word string).  A backend
+    keyword appearing as the *last* whitespace-delimited token is always
+    recognised as the backend, regardless of what precedes it.
+
+    Returns ``(change_id, repo_path, backend)`` or ``None`` if not a trigger.
     """
     stripped = content.strip()
     if not stripped.upper().startswith(RUN_PREFIX.upper()):
         return None
-    body = stripped[len(RUN_PREFIX) :].strip()
+    body = stripped[len(RUN_PREFIX):].strip()
     if not body:
         return None
+
+    # First token is always the change-id.
     parts = body.split(None, 1)
     change_id_raw = parts[0].strip()
-    repo_path = parts[1].strip() if len(parts) > 1 else None
     upper = change_id_raw.upper()
     change_id = upper if upper.startswith("WI-") else f"WI-{upper}"
-    return change_id, repo_path
+
+    remainder = parts[1].strip() if len(parts) > 1 else ""
+
+    repo_path: str | None = None
+    backend: str | None = None
+
+    if remainder:
+        # Check whether the last whitespace-delimited token is a backend keyword.
+        last_space = remainder.rfind(" ")
+        if last_space >= 0:
+            last_token = remainder[last_space + 1:].strip()
+            if last_token.lower() in _BACKEND_KEYWORDS:
+                backend = last_token.lower()
+                repo_path = remainder[:last_space].strip() or None
+            else:
+                repo_path = remainder
+        else:
+            # Single token: either a backend keyword or a repo path.
+            if remainder.lower() in _BACKEND_KEYWORDS:
+                backend = remainder.lower()
+            else:
+                repo_path = remainder
+
+    return change_id, repo_path, backend
+
+
+# ---------------------------------------------------------------------------
+# General trigger parser
+# ---------------------------------------------------------------------------
+
+# Named fields the general parser knows about.  Anything else is metadata.
+_GENERAL_KNOWN_ARGS = frozenset({"backend", "model", "prompt", "repo", "agent"})
+_GENERAL_REQUIRED_ARGS = frozenset({"backend", "prompt", "repo"})
+
+
+def parse_general_trigger(
+    content: str,
+) -> dict[str, str | None] | None:
+    """Parse a ``RUN:`` message in the general channel (argparse-style).
+
+    Accepted form::
+
+        RUN: --backend claude --prompt "Fix the bug" --repo /path [--model sonnet] [--agent spike.agent.md]
+
+    Returns a dict with keys ``backend``, ``model``, ``prompt``, ``repo``,
+    ``agent`` plus any extra ``--key value`` pairs, or *None* if the message
+    is not a valid general trigger.  Missing optional keys have ``None`` values.
+    """
+    stripped = content.strip()
+    if not stripped.upper().startswith(RUN_PREFIX.upper()):
+        return None
+    body = stripped[len(RUN_PREFIX):].strip()
+    if not body:
+        return None
+
+    # Tokenise respecting double-quoted strings
+    tokens = _tokenise_args(body)
+    if not tokens:
+        return None
+
+    # Must look like flag-style args (first token starts with --)
+    if not tokens[0].startswith("--"):
+        return None
+
+    result: dict[str, str | None] = {k: None for k in _GENERAL_KNOWN_ARGS}
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok.startswith("--"):
+            key = tok[2:]
+            # Peek at next token for value
+            if i + 1 < len(tokens) and not tokens[i + 1].startswith("--"):
+                value = tokens[i + 1]
+                i += 2
+            else:
+                value = None
+                i += 1
+            if key in _GENERAL_KNOWN_ARGS:
+                result[key] = value
+            else:
+                result[key] = value
+        else:
+            i += 1
+
+    # Validate required fields
+    for req in _GENERAL_REQUIRED_ARGS:
+        if not result.get(req):
+            return None
+
+    return result
+
+
+def _tokenise_args(text: str) -> list[str]:
+    """Split *text* into tokens, respecting double-quoted strings."""
+    tokens: list[str] = []
+    i = 0
+    n = len(text)
+    while i < n:
+        # Skip whitespace
+        while i < n and text[i] in (" ", "\t"):
+            i += 1
+        if i >= n:
+            break
+        if text[i] == '"':
+            # Quoted string — collect until closing quote
+            i += 1
+            start = i
+            while i < n and text[i] != '"':
+                i += 1
+            tokens.append(text[start:i])
+            if i < n:
+                i += 1  # skip closing quote
+        else:
+            start = i
+            while i < n and text[i] not in (" ", "\t"):
+                i += 1
+            tokens.append(text[start:i])
+    return tokens
+
+
+# ---------------------------------------------------------------------------
+# Structured event state (populated by ##EVENT## lines from run.py)
+# ---------------------------------------------------------------------------
+
+
+class EventState:
+    """Mutable state updated as ##EVENT## lines arrive from the subprocess."""
+
+    def __init__(self) -> None:
+        self.workflow_start_time: float = 0.0
+        self.current_stage: str = ""
+        self.current_stage_number: int = 0
+        self.total_stages: int = 6
+        self.completed_stages: list[tuple[str, bool, int]] = []  # (name, passed, attempts)
+        self.current_attempt: int = 0
+        self.max_attempts: int = 0
+        self.current_uow: str = ""
+        self.current_uow_index: int = 0
+        self.total_uows: int = 0
+
+
+_STAGE_LABELS: dict[str, str] = {
+    "intake": "intake",
+    "task_generator": "task-generator",
+    "task_assigner": "task-assigner",
+    "software_engineer": "software-engineer",
+    "qa": "QA",
+    "lessons_optimizer": "lessons-optimizer",
+}
+
+
+def _stage_label(name: str) -> str:
+    return _STAGE_LABELS.get(name, name)
+
+
+def _update_event_state(state: EventState, payload: dict) -> None:
+    t = payload.get("type", "")
+    if t == "workflow_start":
+        state.total_stages = payload.get("total_stages", 6)
+    elif t == "stage_start":
+        state.current_stage = payload.get("stage", "")
+        state.current_stage_number = payload.get("stage_number", 0)
+        state.total_stages = payload.get("total_stages", state.total_stages)
+        state.current_attempt = 0
+        state.max_attempts = 0
+        state.current_uow = ""
+        state.current_uow_index = 0
+        state.total_uows = 0
+    elif t == "stage_complete":
+        name = payload.get("stage", "")
+        passed = bool(payload.get("passed", False))
+        attempts = int(payload.get("attempts", 0))
+        state.completed_stages.append((name, passed, attempts))
+    elif t == "eval_attempt":
+        state.current_attempt = int(payload.get("attempt", 0))
+        state.max_attempts = int(payload.get("max_attempts", 0))
+    elif t == "uow_start":
+        state.current_uow = payload.get("uow_id", "")
+        state.current_uow_index = int(payload.get("uow_index", 0))
+        state.total_uows = int(payload.get("total_uows", 0))
+
+
+def _format_event_message(payload: dict, state: EventState | None) -> str | None:
+    t = payload.get("type", "")
+
+    if t == "stage_start":
+        n = payload.get("stage_number", "?")
+        total = payload.get("total_stages", "?")
+        stage = _stage_label(payload.get("stage", ""))
+        return f"**Stage {n}/{total}** — Starting _{stage}_"
+
+    if t == "stage_complete":
+        n = payload.get("stage_number", "?")
+        total = state.total_stages if state else "?"
+        stage = _stage_label(payload.get("stage", ""))
+        passed = bool(payload.get("passed", False))
+        attempts = payload.get("attempts", "?")
+        elapsed = payload.get("elapsed_s", "?")
+        status = "passed" if passed else "**failed**"
+        elapsed_str = f"{elapsed}s" if isinstance(elapsed, (int, float)) else str(elapsed)
+        return f"**Stage {n}/{total}** — _{stage}_ {status} (attempt {attempts}) — {elapsed_str}"
+
+    if t == "eval_attempt":
+        stage = _stage_label(payload.get("stage", ""))
+        attempt = payload.get("attempt", "?")
+        max_att = payload.get("max_attempts", "?")
+        passed = bool(payload.get("passed", False))
+        score = payload.get("score", "?")
+        if passed:
+            return f"_{stage}_ evaluator **passed** on attempt {attempt}/{max_att} (score: {score})"
+        return f"_{stage}_ evaluator **failed** on attempt {attempt}/{max_att} (score: {score})"
+
+    if t == "uow_start":
+        idx = payload.get("uow_index", "?")
+        total = payload.get("total_uows", "?")
+        uow_id = payload.get("uow_id", "?")
+        return f"Implementation: starting UoW {idx}/{total} (`{uow_id}`)"
+
+    if t == "uow_complete":
+        uow_id = payload.get("uow_id", "?")
+        passed = bool(payload.get("passed", False))
+        attempts = payload.get("attempts", "?")
+        score = payload.get("score", "?")
+        status = "**passed**" if passed else "**failed**"
+        return f"Implementation: UoW `{uow_id}` {status} (attempt {attempts}, score: {score})"
+
+    if t == "escalation_start":
+        stage = _stage_label(payload.get("stage", ""))
+        uow_id = payload.get("uow_id")
+        suffix = f" (UoW `{uow_id}`)" if uow_id else ""
+        return f":warning: **Escalation** — _{stage}_{suffix} requires human intervention"
+
+    if t == "workflow_error":
+        error = payload.get("error", "unknown error")
+        return f":red_circle: **Workflow error**: {error}"
+
+    return None
+
+
+def _build_heartbeat_summary(state: EventState, elapsed: float) -> str:
+    def _fmt(s: float) -> str:
+        m, sec = divmod(int(s), 60)
+        h, m = divmod(m, 60)
+        if h:
+            return f"{h}h {m}m {sec}s"
+        if m:
+            return f"{m}m {sec}s"
+        return f"{sec}s"
+
+    passed_count = sum(1 for _, ok, _ in state.completed_stages if ok)
+    failed_count = sum(1 for _, ok, _ in state.completed_stages if not ok)
+    completed_count = len(state.completed_stages)
+    stage_label = _stage_label(state.current_stage) if state.current_stage else "—"
+    stage_info = (
+        f"{stage_label} ({state.current_stage_number}/{state.total_stages})"
+        if state.current_stage_number
+        else stage_label
+    )
+    lines = [
+        "---",
+        f":blue_circle: **Status Update** — {_fmt(elapsed)} elapsed",
+        f"**Current stage:** {stage_info}",
+        f"**Completed:** {completed_count} stages ({passed_count} passed, {failed_count} failed)",
+    ]
+    if state.current_attempt and state.max_attempts:
+        lines.append(f"**Current attempt:** {state.current_attempt}/{state.max_attempts}")
+    if state.total_uows:
+        done_uows = state.current_uow_index - 1 if state.current_uow_index else 0
+        uow_info = f"{done_uows}/{state.total_uows}"
+        if state.current_uow:
+            uow_info += f" (`{state.current_uow}` in progress)"
+        lines.append(f"**UoW progress:** {uow_info}")
+    lines.append("---")
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -180,9 +527,12 @@ def stream_output_to_discord(
     token: str,
     thread_id: str,
     line_queue: "queue.Queue[str | None]",
+    event_state: "EventState | None" = None,
 ) -> None:
     """Drain *line_queue* and flush batches to a Discord thread.
 
+    Lines prefixed with _EVENT_PREFIX are parsed as structured events and posted
+    as formatted Discord messages; they are never included in raw code-block output.
     Blocks until a ``None`` sentinel is received (subprocess finished).
     """
     buffer: list[str] = []
@@ -205,6 +555,19 @@ def stream_output_to_discord(
         if line is None:  # sentinel — subprocess finished
             _flush()
             return
+
+        # Structured event lines — parse, post formatted message, skip raw buffer
+        if line.startswith(_EVENT_PREFIX):
+            try:
+                payload = json.loads(line[len(_EVENT_PREFIX):].strip())
+                if event_state is not None:
+                    _update_event_state(event_state, payload)
+                msg = _format_event_message(payload, event_state)
+                if msg:
+                    post_to_thread(token, thread_id, msg)
+            except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                _log(f"Failed to parse event line: {exc}")
+            continue
 
         buffer.append(line)
         chars = sum(len(ln) for ln in buffer)
@@ -278,6 +641,12 @@ def _log(msg: str) -> None:
 class DiscordPollerAdapter:
     """Async polling loop that watches a Discord channel for ``RUN:`` commands.
 
+    Supports two channel types:
+
+    * ``"ado"`` — ADO work-item triggers (``RUN: <change-id> ...``).
+    * ``"general"`` — General-purpose triggers
+      (``RUN: --backend X --prompt "Y" --repo /path ...``).
+
     Designed to run as a long-lived asyncio background task.  All blocking
     Discord REST calls are wrapped in ``asyncio.to_thread`` so the event loop
     is never blocked.
@@ -291,6 +660,9 @@ class DiscordPollerAdapter:
         poll_seconds: int,
         action_handler: "RunWorkflowHandler",
         run_store: "RunStore",
+        *,
+        channel_type: str = "ado",
+        help_message: str | None = None,
     ) -> None:
         self._token = token
         self._guild_name = guild_name
@@ -298,10 +670,16 @@ class DiscordPollerAdapter:
         self._poll_seconds = poll_seconds
         self._handler = action_handler
         self._store = run_store
+        self._channel_type = channel_type
+        self._help_message = (
+            help_message
+            if help_message is not None
+            else (HELP_MESSAGE_GENERAL if channel_type == "general" else HELP_MESSAGE_ADO)
+        )
 
     async def run(self) -> None:
         """Entry point — call via ``asyncio.create_task(adapter.run())``."""
-        _log("Resolving Discord guild and channel…")
+        _log(f"Resolving Discord guild and channel ({self._channel_type})…")
         guild_id = await asyncio.to_thread(
             get_guild_id, self._token, self._guild_name
         )
@@ -311,7 +689,7 @@ class DiscordPollerAdapter:
         )
         _log(
             f"#{self._trigger_channel_name} channel ID: {channel_id}  "
-            f"(polling every {self._poll_seconds}s)"
+            f"(polling every {self._poll_seconds}s, type={self._channel_type})"
         )
 
         # Seed last_seen_id so we don't replay history on startup
@@ -348,38 +726,116 @@ class DiscordPollerAdapter:
                 )
                 last_seen_id = msg_id
 
-                parsed = parse_trigger(content)
-                if not parsed:
+                # HELP: command — reply inline, no thread needed
+                if content.strip().upper().startswith(HELP_PREFIX.upper()):
+                    await asyncio.to_thread(
+                        post_message, self._token, channel_id, self._help_message
+                    )
                     continue
 
-                change_id, repo_override = parsed
+                if self._channel_type == "general":
+                    await self._handle_general_message(
+                        content, username, channel_id
+                    )
+                else:
+                    await self._handle_ado_message(
+                        content, username, channel_id
+                    )
 
-                if self._store.has_active(change_id):
-                    _log(f"Ignoring RUN: {change_id} — already running")
-                    run = self._store.get(change_id)
-                    if run and run.discord_thread_id:
-                        await asyncio.to_thread(
-                            post_to_thread,
-                            self._token,
-                            run.discord_thread_id,
-                            f"⚠️ `{change_id}` is already running.",
-                        )
-                    continue
+    # ------------------------------------------------------------------
+    # ADO channel message handler
+    # ------------------------------------------------------------------
 
-                _log(
-                    f"Trigger from {username}: RUN: {change_id}  "
-                    f"repo={repo_override or '(default)'}"
+    async def _handle_ado_message(
+        self, content: str, username: str, channel_id: str
+    ) -> None:
+        parsed = parse_trigger(content)
+        if not parsed:
+            return
+
+        change_id, repo_override, backend_override = parsed
+
+        if self._store.has_active(change_id):
+            _log(f"Ignoring RUN: {change_id} — already running")
+            run = self._store.get(change_id)
+            if run and run.discord_thread_id:
+                await asyncio.to_thread(
+                    post_to_thread,
+                    self._token,
+                    run.discord_thread_id,
+                    f"⚠️ `{change_id}` is already running.",
                 )
+            return
 
-                event = TriggerEvent(
-                    source="discord",
-                    action="run",
-                    change_id=change_id,
-                    repo_path=repo_override,
-                    requester=username,
-                )
+        _log(
+            f"Trigger from {username}: RUN: {change_id}  "
+            f"repo={repo_override or '(default)'}  "
+            f"backend={backend_override or '(auto)'}"
+        )
 
-                await self._start_discord_run(event, channel_id)
+        event = TriggerEvent(
+            source="discord",
+            action="run",
+            change_id=change_id,
+            repo_path=repo_override,
+            backend=backend_override,
+            requester=username,
+        )
+
+        await self._start_discord_run(event, channel_id)
+
+    # ------------------------------------------------------------------
+    # General channel message handler
+    # ------------------------------------------------------------------
+
+    async def _handle_general_message(
+        self, content: str, username: str, channel_id: str
+    ) -> None:
+        parsed = parse_general_trigger(content)
+        if not parsed:
+            return
+
+        backend = parsed.get("backend")
+        prompt = parsed.get("prompt")
+        repo = parsed.get("repo")
+        model = parsed.get("model")
+        agent = parsed.get("agent")
+
+        # Generate a synthetic change_id for tracking
+        import secrets as _secrets
+
+        change_id = f"GEN-{_secrets.token_hex(4).upper()}"
+
+        if self._store.has_active(change_id):
+            _log(f"Ignoring duplicate general run {change_id}")
+            return
+
+        # Collect extra metadata (any unknown --key value pairs)
+        extra = {
+            k: v for k, v in parsed.items()
+            if k not in _GENERAL_KNOWN_ARGS and v is not None
+        }
+
+        _log(
+            f"General trigger from {username}: backend={backend}  "
+            f"model={model or '(default)'}  repo={repo}  "
+            f"agent={agent or '(none)'}  prompt={prompt[:60]}…"
+        )
+
+        event = TriggerEvent(
+            source="discord",
+            action="general_run",
+            change_id=change_id,
+            repo_path=repo,
+            backend=backend,
+            requester=username,
+            prompt=prompt,
+            model=model,
+            agent_file=agent,
+            metadata=extra,
+        )
+
+        await self._start_discord_run(event, channel_id)
 
     async def _start_discord_run(
         self, event: TriggerEvent, channel_id: str
@@ -387,12 +843,30 @@ class DiscordPollerAdapter:
         """Post ACK, create thread, register record, launch background thread."""
         change_id = event.change_id
         try:
-            ack_content = (
-                f"🤖 **Workflow triggered by {event.requester}**\n"
-                f"**Change:** `{change_id}`\n"
-                f"**Repo:** `{event.repo_path or self._handler._default_repo}`\n"
-                "Starting workflow… updates will appear below."
-            )
+            backend_label = event.backend or "auto-detect"
+            if self._channel_type == "general":
+                model_label = event.model or "(default)"
+                prompt_preview = (event.prompt or "")[:80]
+                ack_content = (
+                    f"🤖 **General run triggered by {event.requester}**\n"
+                    f"**ID:** `{change_id}`\n"
+                    f"**Backend:** `{backend_label}`  |  **Model:** `{model_label}`\n"
+                    f"**Repo:** `{event.repo_path or self._handler._default_repo}`\n"
+                )
+                if event.agent_file:
+                    ack_content += f"**Agent:** `{event.agent_file}`\n"
+                ack_content += (
+                    f"**Prompt:** {prompt_preview}{'…' if len(event.prompt or '') > 80 else ''}\n"
+                    "Starting run… updates will appear below."
+                )
+            else:
+                ack_content = (
+                    f"🤖 **Workflow triggered by {event.requester}**\n"
+                    f"**Change:** `{change_id}`\n"
+                    f"**Repo:** `{event.repo_path or self._handler._default_repo}`\n"
+                    f"**Backend:** `{backend_label}`\n"
+                    "Starting workflow… updates will appear below."
+                )
             ack_msg = await asyncio.to_thread(
                 post_message, self._token, channel_id, ack_content
             )
@@ -428,10 +902,32 @@ class DiscordPollerAdapter:
     def _discord_run_thread(self, event: TriggerEvent, thread_id: str) -> None:
         """Blocking thread: subprocess → line queue → Discord streamer."""
         line_q: "queue.Queue[str | None]" = queue.Queue()
+        start_time = time.monotonic()
+        event_state = EventState()
+        event_state.workflow_start_time = start_time
+        done_event = threading.Event()
+
+        def _heartbeat_loop() -> None:
+            while not done_event.wait(timeout=HEARTBEAT_INTERVAL_SECONDS):
+                if event_state.current_stage:
+                    try:
+                        summary = _build_heartbeat_summary(
+                            event_state, time.monotonic() - start_time
+                        )
+                        post_to_thread(self._token, thread_id, summary)
+                    except Exception as exc:  # noqa: BLE001
+                        _log(f"Heartbeat post failed: {exc}")
+
+        heartbeat_thread = threading.Thread(
+            target=_heartbeat_loop,
+            daemon=True,
+            name=f"heartbeat-{event.change_id}",
+        )
+        heartbeat_thread.start()
 
         streamer = threading.Thread(
             target=stream_output_to_discord,
-            args=(self._token, thread_id, line_q),
+            args=(self._token, thread_id, line_q, event_state),
             daemon=True,
         )
         streamer.start()
@@ -440,6 +936,10 @@ class DiscordPollerAdapter:
 
         line_q.put(None)  # sentinel → streamer flushes and exits
         streamer.join()
+
+        # Stop heartbeat before posting completion summary
+        done_event.set()
+        heartbeat_thread.join(timeout=5)
 
         record = self._store.get(event.change_id)
         if record:

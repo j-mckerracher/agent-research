@@ -1,0 +1,59 @@
+id: BM-002
+name: 'Add disabled state to PersonIdLinkComponent'
+difficulty_estimate: easy
+description: |
+  Add a `disabled` input to PersonIdLinkComponent that, when true, renders the
+  person ID as plain text instead of a clickable link. The text should have a
+  'disabled' CSS class for styling.
+
+story_prompt: |
+  As a developer, I need the PersonIdLinkComponent (libs/shared/ui/components/src/lib/person-id-link/)
+  to support a new optional boolean `disabled` input (default false). When disabled is true,
+  render the personId as a plain <span> with class 'disabled' and data-test-id 'person-id-disabled'
+  instead of the mcs-text-link. When disabled is false, render normally.
+  Update the component, template, test harness, and Cypress tests.
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'PersonIdLinkComponent accepts an optional `disabled` boolean input (default false)'
+    weight: 1.0
+  - id: AC-02
+    description: "When disabled=true, a span with class 'disabled' is rendered instead of mcs-text-link"
+    weight: 1.5
+  - id: AC-03
+    description: 'When disabled=false, the component renders as before (mcs-text-link)'
+    weight: 1.0
+  - id: AC-04
+    description: "The disabled span has data-test-id='person-id-disabled'"
+    weight: 1.0
+  - id: AC-05
+    description: 'Cypress tests verify both enabled and disabled states'
+    weight: 1.5
+  - id: AC-06
+    description: 'Test harness includes methods for the disabled state'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.ts'
+    pattern: 'disabled'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.html'
+    pattern: 'person-id-disabled'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.test-harness.ts'
+    pattern: 'disabled'
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.ts'
+  - 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.html'
+  - 'libs/shared/ui/components/src/lib/person-id-link/person-id-link.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 2-3
+  touches_existing_tests: true
+
+notes: |
+  Good candidate: small component, requires template conditional (@if/@else),
+  test harness update, new Cypress tests. Clear pass/fail criteria.

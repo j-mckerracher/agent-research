@@ -1,0 +1,62 @@
+id: BM-010
+name: 'Add note sorting to notes-container'
+difficulty_estimate: medium
+description: |
+  Add the ability to sort notes by date (newest first or oldest first) in the
+  notes container component.
+
+story_prompt: |
+  As a developer, I need the notes-container component
+  (libs/shared/ui/components/src/lib/notes/notes-container/)
+  to support sorting.
+  Requirements:
+  1. Add a signal `sortOrder` of type 'newest' | 'oldest' with default 'newest'
+  2. Add a toggle button with data-test-id='notes-sort-toggle' that switches between orders
+  3. The button text should show the current sort: 'Newest First' or 'Oldest First'
+  4. Notes should be sorted by their date/timestamp accordingly
+  5. Use computed() to derive the sorted notes array
+  6. Update the Cypress tests and test harness
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'Sort toggle button exists with correct data-test-id'
+    weight: 1.0
+  - id: AC-02
+    description: "Default sort order is 'newest'"
+    weight: 1.0
+  - id: AC-03
+    description: 'Clicking toggle switches between newest and oldest'
+    weight: 1.5
+  - id: AC-04
+    description: 'Notes are actually reordered when sort changes'
+    weight: 1.5
+  - id: AC-05
+    description: 'computed() used for sorted notes'
+    weight: 1.0
+  - id: AC-06
+    description: 'Cypress tests verify sort behavior'
+    weight: 1.5
+  - id: AC-07
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.ts'
+    pattern: "sortOrder\\|computed"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.test-harness.ts'
+    pattern: 'sort'
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.ts'
+  - 'libs/shared/ui/components/src/lib/notes/notes-container/notes-container.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 3-5
+  touches_existing_tests: true
+
+notes: |
+  Medium difficulty: requires understanding component data flow, computed signals
+  for derived state, array sorting, and verifying sort order in tests.

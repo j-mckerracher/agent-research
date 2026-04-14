@@ -1,0 +1,385 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-04-12T14:20:20Z",
+  "status": "in_progress",
+  "completed_stories": [
+    {
+      "story_id": "BM-003",
+      "name": "Add character counter to note-input component",
+      "measured_difficulty": "medium",
+      "role": "medium-benchmark",
+      "trials": [
+        {
+          "story_id": "BM-003",
+          "trial_number": 1,
+          "status": "pass",
+          "workflow_completed": true,
+          "phase2_gate_results": {
+            "P2-HG-01": true,
+            "P2-HG-02": true,
+            "P2-HG-03": true,
+            "P2-HG-04": true,
+            "P2-HG-05": true,
+            "P2-HG-06": true,
+            "P2-HG-07": true,
+            "P2-HG-08": true,
+            "P2-HG-09": true
+          },
+          "phase1_gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "workflow_metrics": {
+            "total_runtime_seconds": 1535.83,
+            "stage_runtimes": {
+              "intake": 0.0,
+              "task_generator": 149.9,
+              "task_assigner": 170.7,
+              "software_engineer": 971.7,
+              "qa": 243.1,
+              "lessons_optimizer": 0.1
+            },
+            "stage_attempts": {
+              "intake": 0,
+              "task_generator": 1,
+              "task_assigner": 1,
+              "software_engineer": 2,
+              "qa": 1,
+              "lessons_optimizer": 1
+            },
+            "evaluator_loop_counts": {
+              "0m [task_generator": 1,
+              "0m [task_assigner": 1,
+              "0m   [UoW UOW-001": 1,
+              "0m   [UoW UOW-002": 1,
+              "0m [qa": 1
+            },
+            "implementation_uow_attempts": {
+              "UOW-001": 1,
+              "UOW-002": 1
+            },
+            "escalation_count": 0,
+            "total_retries": 0,
+            "failure_stage": "",
+            "error_message": "",
+            "token_usage_by_stage": {}
+          },
+          "failure_stage": "",
+          "error_message": "",
+          "timestamp": "2026-04-12T11:48:37Z",
+          "runtime_seconds": 1535.83,
+          "files_changed": 2
+        },
+        {
+          "story_id": "BM-003",
+          "trial_number": 2,
+          "status": "gate_fail",
+          "workflow_completed": false,
+          "phase2_gate_results": {
+            "P2-HG-01": false,
+            "P2-HG-02": false,
+            "P2-HG-03": false,
+            "P2-HG-04": true,
+            "P2-HG-05": false,
+            "P2-HG-06": true,
+            "P2-HG-07": true,
+            "P2-HG-08": true,
+            "P2-HG-09": true
+          },
+          "phase1_gate_results": {
+            "HG-01": false,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "workflow_metrics": {
+            "total_runtime_seconds": 3651.58,
+            "stage_runtimes": {
+              "intake": 0.0,
+              "task_generator": 153.4,
+              "task_assigner": 156.5,
+              "software_engineer": 2649.9
+            },
+            "stage_attempts": {},
+            "evaluator_loop_counts": {
+              "0m [task_generator": 1,
+              "0m [task_assigner": 1,
+              "0m   [UoW UOW-001": 1,
+              "0m   [UoW UOW-002": 3,
+              "0m [qa": 3
+            },
+            "implementation_uow_attempts": {
+              "UOW-001": 1,
+              "UOW-002": 3
+            },
+            "escalation_count": 0,
+            "total_retries": 6,
+            "failure_stage": "qa",
+            "error_message": "Stage 'qa' exceeded max attempts (3) without passing evaluation.",
+            "token_usage_by_stage": {}
+          },
+          "failure_stage": "qa",
+          "error_message": "Stage 'qa' exceeded max attempts (3) without passing evaluation.",
+          "timestamp": "2026-04-12T12:14:15Z",
+          "runtime_seconds": 3651.58,
+          "files_changed": 3
+        },
+        {
+          "story_id": "BM-003",
+          "trial_number": 3,
+          "status": "pass",
+          "workflow_completed": true,
+          "phase2_gate_results": {
+            "P2-HG-01": true,
+            "P2-HG-02": true,
+            "P2-HG-03": true,
+            "P2-HG-04": true,
+            "P2-HG-05": true,
+            "P2-HG-06": true,
+            "P2-HG-07": true,
+            "P2-HG-08": true,
+            "P2-HG-09": true
+          },
+          "phase1_gate_results": {
+            "HG-01": true,
+            "HG-02": true,
+            "HG-03": true,
+            "HG-04": true,
+            "HG-05": true
+          },
+          "ac_scores": {
+            "AC-01": 1.0,
+            "AC-02": 1.0,
+            "AC-03": 1.0,
+            "AC-04": 1.0,
+            "AC-05": 1.0,
+            "AC-06": 1.0,
+            "AC-07": 1.0
+          },
+          "weighted_ac_score": 1.0,
+          "hidden_check_results": {
+            "HC-00": true,
+            "HC-01": true
+          },
+          "workflow_metrics": {
+            "total_runtime_seconds": 1635.81,
+            "stage_runtimes": {
+              "intake": 0.0,
+              "task_generator": 131.9,
+              "task_assigner": 294.7,
+              "software_engineer": 984.3,
+              "qa": 224.2,
+              "lessons_optimizer": 0.1
+            },
+            "stage_attempts": {
+              "intake": 0,
+              "task_generator": 1,
+              "task_assigner": 1,
+              "software_engineer": 2,
+              "qa": 1,
+              "lessons_optimizer": 1
+            },
+            "evaluator_loop_counts": {
+              "0m [task_generator": 1,
+              "0m [task_assigner": 1,
+              "0m   [UoW UOW-001": 1,
+              "0m   [UoW UOW-002": 1,
+              "0m [qa": 1
+            },
+            "implementation_uow_attempts": {
+              "UOW-001": 1,
+              "UOW-002": 1
+            },
+            "escalation_count": 0,
+            "total_retries": 0,
+            "failure_stage": "",
+            "error_message": "",
+            "token_usage_by_stage": {}
+          },
+          "failure_stage": "",
+          "error_message": "",
+          "timestamp": "2026-04-12T13:15:08Z",
+          "runtime_seconds": 1635.81,
+          "files_changed": 2
+        }
+      ],
+      "pass_rate": 0.6667,
+      "avg_weighted_score": 1.0,
+      "avg_runtime": 2274.41,
+      "pass_at_1": 1.0,
+      "pass_at_3": 1.0
+    }
+  ],
+  "current_story": "BM-010",
+  "current_trials": [
+    {
+      "story_id": "BM-010",
+      "trial_number": 1,
+      "status": "gate_fail",
+      "workflow_completed": false,
+      "phase2_gate_results": {
+        "P2-HG-01": false,
+        "P2-HG-02": false,
+        "P2-HG-03": false,
+        "P2-HG-04": true,
+        "P2-HG-05": false,
+        "P2-HG-06": true,
+        "P2-HG-07": true,
+        "P2-HG-08": false,
+        "P2-HG-09": true
+      },
+      "phase1_gate_results": {
+        "HG-01": false,
+        "HG-02": true,
+        "HG-03": true,
+        "HG-04": true,
+        "HG-05": false
+      },
+      "ac_scores": {
+        "AC-01": 0.0,
+        "AC-02": 0.25,
+        "AC-03": 0.0,
+        "AC-04": 0.25,
+        "AC-05": 0.25,
+        "AC-06": 0.25,
+        "AC-07": 0.25
+      },
+      "weighted_ac_score": 0.1765,
+      "hidden_check_results": {
+        "HC-00": false,
+        "HC-01": false
+      },
+      "workflow_metrics": {
+        "total_runtime_seconds": 280.98,
+        "stage_runtimes": {
+          "intake": 0.0
+        },
+        "stage_attempts": {},
+        "evaluator_loop_counts": {
+          "0m [task_generator": 1
+        },
+        "implementation_uow_attempts": {},
+        "escalation_count": 0,
+        "total_retries": 0,
+        "failure_stage": "unknown",
+        "error_message": "Failed to parse JSON artifact /Users/mckerracher.joshua/Code/mcs-products-mono-ui/agent-context/P2-BM-010-T1/planning/eval_tasks_1.json: Invalid control character at: line 47 column 125 (char 1794)",
+        "token_usage_by_stage": {}
+      },
+      "failure_stage": "unknown",
+      "error_message": "Failed to parse JSON artifact /Users/mckerracher.joshua/Code/mcs-products-mono-ui/agent-context/P2-BM-010-T1/planning/eval_tasks_1.json: Invalid control character at: line 47 column 125 (char 1794)",
+      "timestamp": "2026-04-12T13:42:25Z",
+      "runtime_seconds": 280.98,
+      "files_changed": 0
+    },
+    {
+      "story_id": "BM-010",
+      "trial_number": 2,
+      "status": "pass",
+      "workflow_completed": true,
+      "phase2_gate_results": {
+        "P2-HG-01": true,
+        "P2-HG-02": true,
+        "P2-HG-03": true,
+        "P2-HG-04": true,
+        "P2-HG-05": true,
+        "P2-HG-06": true,
+        "P2-HG-07": true,
+        "P2-HG-08": true,
+        "P2-HG-09": true
+      },
+      "phase1_gate_results": {
+        "HG-01": true,
+        "HG-02": true,
+        "HG-03": true,
+        "HG-04": true,
+        "HG-05": true
+      },
+      "ac_scores": {
+        "AC-01": 1.0,
+        "AC-02": 1.0,
+        "AC-03": 1.0,
+        "AC-04": 1.0,
+        "AC-05": 1.0,
+        "AC-06": 1.0,
+        "AC-07": 1.0
+      },
+      "weighted_ac_score": 1.0,
+      "hidden_check_results": {
+        "HC-00": true,
+        "HC-01": true
+      },
+      "workflow_metrics": {
+        "total_runtime_seconds": 1992.68,
+        "stage_runtimes": {
+          "intake": 0.0,
+          "task_generator": 142.1,
+          "task_assigner": 188.0,
+          "software_engineer": 1428.6,
+          "qa": 233.5,
+          "lessons_optimizer": 0.1
+        },
+        "stage_attempts": {
+          "intake": 0,
+          "task_generator": 1,
+          "task_assigner": 1,
+          "software_engineer": 2,
+          "qa": 1,
+          "lessons_optimizer": 1
+        },
+        "evaluator_loop_counts": {
+          "0m [task_generator": 1,
+          "0m [task_assigner": 1,
+          "0m   [UoW UOW-001": 1,
+          "0m   [UoW UOW-002": 1,
+          "0m [qa": 1
+        },
+        "implementation_uow_attempts": {
+          "UOW-001": 1,
+          "UOW-002": 1
+        },
+        "escalation_count": 0,
+        "total_retries": 0,
+        "failure_stage": "",
+        "error_message": "",
+        "token_usage_by_stage": {}
+      },
+      "failure_stage": "",
+      "error_message": "",
+      "timestamp": "2026-04-12T13:47:06Z",
+      "runtime_seconds": 1992.68,
+      "files_changed": 5
+    }
+  ]
+}

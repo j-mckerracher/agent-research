@@ -1,0 +1,61 @@
+id: BM-009
+name: 'Add aria-label to TextLinkComponent for accessibility'
+difficulty_estimate: easy
+description: |
+  Add an optional `ariaLabel` input to TextLinkComponent that sets the
+  aria-label attribute on the anchor element for screen readers.
+
+story_prompt: |
+  As a developer, I need the TextLinkComponent
+  (libs/shared/ui/components/src/lib/text-link/) to support custom aria-labels.
+  Requirements:
+  1. Add optional input `ariaLabel` (string, default '')
+  2. When ariaLabel is provided and non-empty, set aria-label on the <a> element
+  3. When ariaLabel is empty/not provided, do not render the aria-label attribute
+  4. Also add `target` input (string, default '_blank') and `rel` input (string, default 'noopener noreferrer')
+  5. Update Cypress tests to verify aria-label, target, and rel attributes
+  6. Update test harness with new assertion methods
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'ariaLabel input exists'
+    weight: 1.0
+  - id: AC-02
+    description: 'aria-label attribute set when ariaLabel is non-empty'
+    weight: 1.5
+  - id: AC-03
+    description: 'aria-label not rendered when ariaLabel is empty'
+    weight: 1.0
+  - id: AC-04
+    description: 'target and rel inputs exist with correct defaults'
+    weight: 1.0
+  - id: AC-05
+    description: 'Cypress tests cover all new attributes'
+    weight: 1.5
+  - id: AC-06
+    description: 'Test harness updated'
+    weight: 1.0
+
+hidden_checks:
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+    pattern: 'ariaLabel'
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+    pattern: "target.*input\\|input.*target"
+  - type: grep_match
+    file: 'libs/shared/ui/components/src/lib/text-link/text-link.component.test-harness.ts'
+    pattern: "ariaLabel\\|aria"
+
+required_artifacts:
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.ts'
+  - 'libs/shared/ui/components/src/lib/text-link/text-link.component.test-harness.ts'
+
+grading_metadata:
+  expected_files_changed: 3-4
+  expected_test_count_added: 3-4
+  touches_existing_tests: true
+
+notes: |
+  Easy candidate: straightforward input additions with attribute binding.
+  Tests are simple attribute assertions.

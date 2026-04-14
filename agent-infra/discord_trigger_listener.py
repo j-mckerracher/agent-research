@@ -21,7 +21,7 @@ Environment variables (same as before, plus API additions)::
 
     DISCORD_BOT_TOKEN        Required for Discord polling
     DISCORD_GUILD_NAME       Discord server name      (default: arigato-mr-roboto)
-    DISCORD_TRIGGER_CHANNEL  Channel to watch         (default: trigger-agents)
+    DISCORD_TRIGGER_CHANNEL  Channel to watch         (default: trigger-agents-ado-work)
     DISCORD_POLL_SECONDS     Poll interval in seconds (default: 10)
     ADO_WEBHOOK_SECRET       Basic-auth password for Azure DevOps service hooks
     DEFAULT_REPO             Repo root when a trigger omits a path

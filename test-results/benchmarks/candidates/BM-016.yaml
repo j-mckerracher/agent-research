@@ -1,0 +1,67 @@
+id: BM-016
+name: 'Add health check aggregation utility'
+difficulty_estimate: medium
+description: |
+  Add a utility function to the web-server health module that aggregates
+  multiple health check results into a summary status.
+
+story_prompt: |
+  As a developer, I need a new utility function in the web-server health module
+  (apps/web-server/src/health/).
+  Requirements:
+  1. Create a function `aggregateHealthChecks(checks: HealthCheckResult[]): HealthSummary`
+     in a new file `health-aggregator.ts`
+  2. HealthSummary type: { status: 'healthy' | 'degraded' | 'unhealthy', checks: HealthCheckResult[], timestamp: string }
+  3. Status logic: all pass → healthy; any warn → degraded; any fail → unhealthy
+  4. Export from the health module
+  5. Add comprehensive Jest unit tests in `__tests__/health-aggregator.spec.ts`
+  6. Edge cases: empty array returns healthy, single check returns its status
+
+visible_acceptance_criteria:
+  - id: AC-01
+    description: 'aggregateHealthChecks function exists'
+    weight: 1.5
+  - id: AC-02
+    description: "Returns 'healthy' when all checks pass"
+    weight: 1.0
+  - id: AC-03
+    description: "Returns 'degraded' when any check warns"
+    weight: 1.0
+  - id: AC-04
+    description: "Returns 'unhealthy' when any check fails"
+    weight: 1.0
+  - id: AC-05
+    description: 'Edge cases handled (empty array, single check)'
+    weight: 1.0
+  - id: AC-06
+    description: 'Jest tests cover all scenarios'
+    weight: 1.5
+  - id: AC-07
+    description: 'TypeScript types defined'
+    weight: 1.0
+
+hidden_checks:
+  - type: file_exists
+    path: 'apps/web-server/src/health/health-aggregator.ts'
+  - type: file_exists
+    path: 'apps/web-server/src/health/__tests__/health-aggregator.spec.ts'
+  - type: grep_match
+    file: 'apps/web-server/src/health/health-aggregator.ts'
+    pattern: 'aggregateHealthChecks'
+  - type: grep_match
+    file: 'apps/web-server/src/health/health-aggregator.ts'
+    pattern: "healthy.*degraded.*unhealthy\\|'healthy'\\|'degraded'\\|'unhealthy'"
+
+required_artifacts:
+  - 'apps/web-server/src/health/health-aggregator.ts'
+  - 'apps/web-server/src/health/__tests__/health-aggregator.spec.ts'
+
+grading_metadata:
+  expected_files_changed: 2-3
+  expected_test_count_added: 5-8
+  touches_existing_tests: false
+
+notes: |
+  Medium difficulty: requires understanding health check types, creating
+  new files, implementing aggregation logic, comprehensive Jest tests.
+  No UI component complexity, but requires solid TypeScript design.
