@@ -1,0 +1,704 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Doc" [ref=e8] [cursor=pointer]:
+            - /url: /docs
+            - button "Doc" [ref=e9]
+          - link "Blog" [ref=e10] [cursor=pointer]:
+            - /url: /blog
+            - button "Blog" [ref=e11]
+        - link "OpenViking Logo OpenViking" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img "OpenViking Logo" [ref=e14]
+          - generic [ref=e16]: OpenViking
+        - link "GitHub" [ref=e18] [cursor=pointer]:
+          - /url: https://github.com/volcengine/OpenViking
+          - button "GitHub" [ref=e19]
+    - generic [ref=e21]:
+      - complementary [ref=e22]:
+        - heading "Documentation" [level=2] [ref=e23]
+        - navigation [ref=e24]:
+          - button "Getting Started" [ref=e26] [cursor=pointer]:
+            - img [ref=e27]
+            - img [ref=e29]
+            - generic [ref=e32]: Getting Started
+          - button "API" [ref=e37] [cursor=pointer]:
+            - img [ref=e38]
+            - img [ref=e40]
+            - generic [ref=e44]: API
+          - button "Concepts" [ref=e46] [cursor=pointer]:
+            - img [ref=e47]
+            - img [ref=e49]
+            - generic [ref=e51]: Concepts
+          - button "Configuration" [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+            - img [ref=e56]
+            - generic [ref=e59]: Configuration
+          - generic [ref=e60]:
+            - button "FAQ" [ref=e61] [cursor=pointer]:
+              - img [ref=e62]
+              - img [ref=e64]
+              - generic [ref=e67]: FAQ
+            - button "FAQ" [active] [ref=e1188] [cursor=pointer]
+          - button "About" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - img [ref=e72]
+            - generic [ref=e74]: About
+      - main [ref=e75]:
+        - article [ref=e1189]:
+          - generic [ref=e1191]:
+            - heading "FAQ" [level=1] [ref=e1192]
+            - heading "Basic Concepts" [level=2] [ref=e1193]
+            - heading "What is OpenViking? What problems does it solve?" [level=3] [ref=e1194]
+            - paragraph [ref=e1195]: "OpenViking is an open-source context database designed specifically for AI Agents. It solves core pain points when building AI Agents:"
+            - list [ref=e1196]:
+              - listitem [ref=e1197]:
+                - strong [ref=e1198]: Fragmented Context
+                - text: ": Memories, resources, and skills are scattered everywhere, difficult to manage uniformly"
+              - listitem [ref=e1199]:
+                - strong [ref=e1200]: Poor Retrieval Effectiveness
+                - text: ": Traditional RAG's flat storage lacks global view, making it hard to understand complete context"
+              - listitem [ref=e1201]:
+                - strong [ref=e1202]: Unobservable Context
+                - text: ": Implicit retrieval chains are like black boxes, difficult to debug when errors occur"
+              - listitem [ref=e1203]:
+                - strong [ref=e1204]: Limited Memory Iteration
+                - text: ": Lacks Agent-related task memory and self-evolution capabilities"
+            - paragraph [ref=e1205]: OpenViking unifies all context management through a filesystem paradigm, enabling tiered delivery and self-iteration.
+            - heading "What's the fundamental difference between OpenViking and traditional vector databases?" [level=3] [ref=e1206]
+            - table [ref=e1207]:
+              - rowgroup [ref=e1208]:
+                - row "Dimension Traditional Vector DB OpenViking" [ref=e1209]:
+                  - columnheader "Dimension" [ref=e1210]
+                  - columnheader "Traditional Vector DB" [ref=e1211]
+                  - columnheader "OpenViking" [ref=e1212]
+              - rowgroup [ref=e1213]:
+                - row "Storage Model Flat vector storage Hierarchical filesystem (AGFS)" [ref=e1214]:
+                  - cell "Storage Model" [ref=e1215]:
+                    - strong [ref=e1216]: Storage Model
+                  - cell "Flat vector storage" [ref=e1217]
+                  - cell "Hierarchical filesystem (AGFS)" [ref=e1218]
+                - row "Retrieval Method Single vector similarity search Directory recursive retrieval + Intent analysis + Rerank" [ref=e1219]:
+                  - cell "Retrieval Method" [ref=e1220]:
+                    - strong [ref=e1221]: Retrieval Method
+                  - cell "Single vector similarity search" [ref=e1222]
+                  - cell "Directory recursive retrieval + Intent analysis + Rerank" [ref=e1223]
+                - row "Output Format Raw chunks Structured context (L0 Abstract/L1 Overview/L2 Details)" [ref=e1224]:
+                  - cell "Output Format" [ref=e1225]:
+                    - strong [ref=e1226]: Output Format
+                  - cell "Raw chunks" [ref=e1227]
+                  - cell "Structured context (L0 Abstract/L1 Overview/L2 Details)" [ref=e1228]
+                - row "Memory Capability Not supported Built-in 6 memory categories with auto-extraction and iteration" [ref=e1229]:
+                  - cell "Memory Capability" [ref=e1230]:
+                    - strong [ref=e1231]: Memory Capability
+                  - cell "Not supported" [ref=e1232]
+                  - cell "Built-in 6 memory categories with auto-extraction and iteration" [ref=e1233]
+                - row "Observability Black box Fully traceable retrieval trajectory" [ref=e1234]:
+                  - cell "Observability" [ref=e1235]:
+                    - strong [ref=e1236]: Observability
+                  - cell "Black box" [ref=e1237]
+                  - cell "Fully traceable retrieval trajectory" [ref=e1238]
+                - row "Context Types Documents only Resource + Memory + Skill three types" [ref=e1239]:
+                  - cell "Context Types" [ref=e1240]:
+                    - strong [ref=e1241]: Context Types
+                  - cell "Documents only" [ref=e1242]
+                  - cell "Resource + Memory + Skill three types" [ref=e1243]
+            - heading "What is the L0/L1/L2 layered model? Why is it needed?" [level=3] [ref=e1244]
+            - paragraph [ref=e1245]: "L0/L1/L2 is OpenViking's progressive content loading mechanism, solving the problem of \"stuffing massive context into prompts all at once\":"
+            - table [ref=e1246]:
+              - rowgroup [ref=e1247]:
+                - row "Layer Name Token Limit Purpose" [ref=e1248]:
+                  - columnheader "Layer" [ref=e1249]
+                  - columnheader "Name" [ref=e1250]
+                  - columnheader "Token Limit" [ref=e1251]
+                  - columnheader "Purpose" [ref=e1252]
+              - rowgroup [ref=e1253]:
+                - row "L0 Abstract ~100 tokens Vector search recall, quick filtering, list display" [ref=e1254]:
+                  - cell "L0" [ref=e1255]:
+                    - strong [ref=e1256]: L0
+                  - cell "Abstract" [ref=e1257]
+                  - cell "~100 tokens" [ref=e1258]
+                  - cell "Vector search recall, quick filtering, list display" [ref=e1259]
+                - row "L1 Overview ~2000 tokens Rerank refinement, content navigation, decision reference" [ref=e1260]:
+                  - cell "L1" [ref=e1261]:
+                    - strong [ref=e1262]: L1
+                  - cell "Overview" [ref=e1263]
+                  - cell "~2000 tokens" [ref=e1264]
+                  - cell "Rerank refinement, content navigation, decision reference" [ref=e1265]
+                - row "L2 Details Unlimited Complete original content, on-demand deep loading" [ref=e1266]:
+                  - cell "L2" [ref=e1267]:
+                    - strong [ref=e1268]: L2
+                  - cell "Details" [ref=e1269]
+                  - cell "Unlimited" [ref=e1270]
+                  - cell "Complete original content, on-demand deep loading" [ref=e1271]
+            - paragraph [ref=e1272]: This design allows Agents to browse abstracts for quick positioning, then load details on demand, significantly saving token consumption.
+            - heading "What is Viking URI? What's its purpose?" [level=3] [ref=e1273]
+            - paragraph [ref=e1274]:
+              - text: Viking URI is OpenViking's unified resource identifier, formatted as
+              - code [ref=e1275]: "`viking://{scope}/{path}`"
+              - text: ". It enables precise location of any context:"
+            - code [ref=e1277]:
+              - generic [ref=e1278]: viking://
+              - generic [ref=e1279]: "├── resources/ # Knowledge base: documents, code, web pages, etc."
+              - generic [ref=e1280]: │ └── my_project/
+              - generic [ref=e1281]: "├── user/ # User context"
+              - generic [ref=e1282]: "│ └── memories/ # User memories (preferences, entities, events)"
+              - generic [ref=e1283]: "└── agent/ # Agent context"
+              - generic [ref=e1284]: "├── skills/ # Callable skills"
+              - generic [ref=e1285]: "└── memories/ # Agent memories (cases, patterns)"
+            - heading "Installation & Configuration" [level=2] [ref=e1286]
+            - heading "What are the environment requirements?" [level=3] [ref=e1287]
+            - list [ref=e1288]:
+              - listitem [ref=e1289]:
+                - strong [ref=e1290]: Python Version
+                - text: ": 3.10 or higher"
+              - listitem [ref=e1291]:
+                - strong [ref=e1292]: Required Dependencies
+                - text: ": Embedding model (Volcengine Doubao recommended)"
+              - listitem [ref=e1293]:
+                - strong [ref=e1294]: Optional Dependencies
+                - text: ":"
+                - list [ref=e1295]:
+                  - listitem [ref=e1296]: "VLM (Vision Language Model): For multimodal content processing and semantic extraction"
+                  - listitem [ref=e1297]: "Rerank model: For improved retrieval precision"
+            - heading "How do I install OpenViking?" [level=3] [ref=e1298]
+            - code [ref=e1300]:
+              - generic [ref=e1301]: pip install openviking
+            - heading "How do I configure OpenViking?" [level=3] [ref=e1302]
+            - paragraph [ref=e1303]:
+              - text: Create an
+              - code [ref=e1304]: "`ov.conf`"
+              - text: "configuration file in your project directory:"
+            - code [ref=e1306]:
+              - generic [ref=e1307]: "{"
+              - generic [ref=e1308]: "\"user\": \"default_user\","
+              - generic [ref=e1309]: "\"embedding\": {"
+              - generic [ref=e1310]: "\"dense\": {"
+              - generic [ref=e1311]: "\"backend\": \"volcengine\","
+              - generic [ref=e1312]: "\"api_key\": \"your-api-key\","
+              - generic [ref=e1313]: "\"model\": \"doubao-embedding-vision-250615\","
+              - generic [ref=e1314]: "\"dimension\": 1024,"
+              - generic [ref=e1315]: "\"input\": \"multimodal\""
+              - generic [ref=e1316]: "}"
+              - generic [ref=e1317]: "},"
+              - generic [ref=e1318]: "\"vlm\": {"
+              - generic [ref=e1319]: "\"backend\": \"volcengine\","
+              - generic [ref=e1320]: "\"api_key\": \"your-api-key\","
+              - generic [ref=e1321]: "\"model\": \"doubao-seed-1-8-251228\","
+              - generic [ref=e1322]: "\"api_base\": \"https://ark.cn-beijing.volces.com/api/v3\""
+              - generic [ref=e1323]: "},"
+              - generic [ref=e1324]: "\"rerank\": {"
+              - generic [ref=e1325]: "\"backend\": \"volcengine\","
+              - generic [ref=e1326]: "\"api_key\": \"your-api-key\","
+              - generic [ref=e1327]: "\"model\": \"doubao-rerank-250615\""
+              - generic [ref=e1328]: "},"
+              - generic [ref=e1329]: "\"storage\": {"
+              - generic [ref=e1330]: "\"agfs\": { \"backend\": \"local\", \"path\": \"./data\" },"
+              - generic [ref=e1331]: "\"vectordb\": { \"backend\": \"local\", \"path\": \"./data\" }"
+              - generic [ref=e1332]: "}"
+              - generic [ref=e1333]: "}"
+            - paragraph [ref=e1334]: "Configuration priority: Constructor parameters > Config object > Config file > Environment variables > Default values"
+            - heading "What Embedding backends are supported?" [level=3] [ref=e1335]
+            - table [ref=e1336]:
+              - rowgroup [ref=e1337]:
+                - row "Backend Description" [ref=e1338]:
+                  - columnheader "Backend" [ref=e1339]
+                  - columnheader "Description" [ref=e1340]
+              - rowgroup [ref=e1341]:
+                - 'row "`volcengine` Volcengine Embedding API (Recommended)" [ref=e1342]':
+                  - 'cell "`volcengine`" [ref=e1343]':
+                    - code [ref=e1344]: "`volcengine`"
+                  - cell "Volcengine Embedding API (Recommended)" [ref=e1345]
+                - 'row "`openai` OpenAI Embedding API" [ref=e1346]':
+                  - 'cell "`openai`" [ref=e1347]':
+                    - code [ref=e1348]: "`openai`"
+                  - cell "OpenAI Embedding API" [ref=e1349]
+                - 'row "`vikingdb` VikingDB Embedding API" [ref=e1350]':
+                  - 'cell "`vikingdb`" [ref=e1351]':
+                    - code [ref=e1352]: "`vikingdb`"
+                  - cell "VikingDB Embedding API" [ref=e1353]
+            - paragraph [ref=e1354]: Supports Dense, Sparse, and Hybrid embedding modes.
+            - heading "Usage Guide" [level=2] [ref=e1355]
+            - heading "How do I initialize the client?" [level=3] [ref=e1356]
+            - code [ref=e1358]:
+              - generic [ref=e1359]: import openviking as ov
+              - generic [ref=e1360]: "# Async client (recommended)"
+              - generic [ref=e1361]: client = ov.AsyncOpenViking(path="./my_data")
+              - generic [ref=e1362]: await client.initialize()
+              - generic [ref=e1363]: "# Or use a config object"
+              - generic [ref=e1364]: from openviking.utils.config import OpenVikingConfig
+              - generic [ref=e1365]: config = OpenVikingConfig(...)
+              - generic [ref=e1366]: client = ov.AsyncOpenViking(config=config)
+              - generic [ref=e1367]: await client.initialize()
+            - heading "What file formats are supported?" [level=3] [ref=e1368]
+            - table [ref=e1369]:
+              - rowgroup [ref=e1370]:
+                - row "Type Supported Formats" [ref=e1371]:
+                  - columnheader "Type" [ref=e1372]
+                  - columnheader "Supported Formats" [ref=e1373]
+              - rowgroup [ref=e1374]:
+                - 'row "Text `.txt`, `.md`, `.json`, `.yaml`" [ref=e1375]':
+                  - cell "Text" [ref=e1376]:
+                    - strong [ref=e1377]: Text
+                  - 'cell "`.txt`, `.md`, `.json`, `.yaml`" [ref=e1378]':
+                    - code [ref=e1379]: "`.txt`"
+                    - text: ","
+                    - code [ref=e1380]: "`.md`"
+                    - text: ","
+                    - code [ref=e1381]: "`.json`"
+                    - text: ","
+                    - code [ref=e1382]: "`.yaml`"
+                - 'row "Code `.py`, `.js`, `.ts`, `.go`, `.java`, `.cpp`, etc." [ref=e1383]':
+                  - cell "Code" [ref=e1384]:
+                    - strong [ref=e1385]: Code
+                  - 'cell "`.py`, `.js`, `.ts`, `.go`, `.java`, `.cpp`, etc." [ref=e1386]':
+                    - code [ref=e1387]: "`.py`"
+                    - text: ","
+                    - code [ref=e1388]: "`.js`"
+                    - text: ","
+                    - code [ref=e1389]: "`.ts`"
+                    - text: ","
+                    - code [ref=e1390]: "`.go`"
+                    - text: ","
+                    - code [ref=e1391]: "`.java`"
+                    - text: ","
+                    - code [ref=e1392]: "`.cpp`"
+                    - text: ", etc."
+                - 'row "Documents `.pdf`, `.docx`" [ref=e1393]':
+                  - cell "Documents" [ref=e1394]:
+                    - strong [ref=e1395]: Documents
+                  - 'cell "`.pdf`, `.docx`" [ref=e1396]':
+                    - code [ref=e1397]: "`.pdf`"
+                    - text: ","
+                    - code [ref=e1398]: "`.docx`"
+                - 'row "Images `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`" [ref=e1399]':
+                  - cell "Images" [ref=e1400]:
+                    - strong [ref=e1401]: Images
+                  - 'cell "`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`" [ref=e1402]':
+                    - code [ref=e1403]: "`.png`"
+                    - text: ","
+                    - code [ref=e1404]: "`.jpg`"
+                    - text: ","
+                    - code [ref=e1405]: "`.jpeg`"
+                    - text: ","
+                    - code [ref=e1406]: "`.gif`"
+                    - text: ","
+                    - code [ref=e1407]: "`.webp`"
+                - 'row "Video `.mp4`, `.mov`, `.avi`" [ref=e1408]':
+                  - cell "Video" [ref=e1409]:
+                    - strong [ref=e1410]: Video
+                  - 'cell "`.mp4`, `.mov`, `.avi`" [ref=e1411]':
+                    - code [ref=e1412]: "`.mp4`"
+                    - text: ","
+                    - code [ref=e1413]: "`.mov`"
+                    - text: ","
+                    - code [ref=e1414]: "`.avi`"
+                - 'row "Audio `.mp3`, `.wav`, `.m4a`" [ref=e1415]':
+                  - cell "Audio" [ref=e1416]:
+                    - strong [ref=e1417]: Audio
+                  - 'cell "`.mp3`, `.wav`, `.m4a`" [ref=e1418]':
+                    - code [ref=e1419]: "`.mp3`"
+                    - text: ","
+                    - code [ref=e1420]: "`.wav`"
+                    - text: ","
+                    - code [ref=e1421]: "`.m4a`"
+            - heading "How do I add resources?" [level=3] [ref=e1422]
+            - code [ref=e1424]:
+              - generic [ref=e1425]: "# Add single file"
+              - generic [ref=e1426]: await client.add_resource(
+              - generic [ref=e1427]: "\"./document.pdf\","
+              - generic [ref=e1428]: "reason=\"Project technical documentation\", # Describe resource purpose to improve retrieval quality"
+              - generic [ref=e1429]: "target=\"viking://resources/docs/\" # Specify storage location"
+              - generic [ref=e1430]: )
+              - generic [ref=e1431]: "# Add web page"
+              - generic [ref=e1432]: await client.add_resource(
+              - generic [ref=e1433]: "\"https://example.com/api-docs\","
+              - generic [ref=e1434]: reason="API reference documentation"
+              - generic [ref=e1435]: )
+              - generic [ref=e1436]: "# Wait for processing to complete"
+              - generic [ref=e1437]: await client.wait_processed()
+            - 'heading "What''s the difference between `find()` and `search()`? Which should I use?" [level=3] [ref=e1438]':
+              - text: What's the difference between
+              - code [ref=e1439]: "`find()`"
+              - text: and
+              - code [ref=e1440]: "`search()`"
+              - text: "? Which should I use?"
+            - table [ref=e1441]:
+              - rowgroup [ref=e1442]:
+                - 'row "Feature `find()` `search()`" [ref=e1443]':
+                  - columnheader "Feature" [ref=e1444]
+                  - 'columnheader "`find()`" [ref=e1445]':
+                    - code [ref=e1446]: "`find()`"
+                  - 'columnheader "`search()`" [ref=e1447]':
+                    - code [ref=e1448]: "`search()`"
+              - rowgroup [ref=e1449]:
+                - row "Session Context Not required Required" [ref=e1450]:
+                  - cell "Session Context" [ref=e1451]:
+                    - strong [ref=e1452]: Session Context
+                  - cell "Not required" [ref=e1453]
+                  - cell "Required" [ref=e1454]
+                - row "Intent Analysis Not used Uses LLM to analyze and generate 0-5 queries" [ref=e1455]:
+                  - cell "Intent Analysis" [ref=e1456]:
+                    - strong [ref=e1457]: Intent Analysis
+                  - cell "Not used" [ref=e1458]
+                  - cell "Uses LLM to analyze and generate 0-5 queries" [ref=e1459]
+                - row "Latency Low Higher" [ref=e1460]:
+                  - cell "Latency" [ref=e1461]:
+                    - strong [ref=e1462]: Latency
+                  - cell "Low" [ref=e1463]
+                  - cell "Higher" [ref=e1464]
+                - row "Use Case Simple semantic search Complex tasks requiring context understanding" [ref=e1465]:
+                  - cell "Use Case" [ref=e1466]:
+                    - strong [ref=e1467]: Use Case
+                  - cell "Simple semantic search" [ref=e1468]
+                  - cell "Complex tasks requiring context understanding" [ref=e1469]
+            - code [ref=e1471]:
+              - generic [ref=e1472]: "# find(): Simple direct semantic search"
+              - generic [ref=e1473]: results = await client.find(
+              - generic [ref=e1474]: "\"OAuth authentication flow\","
+              - generic [ref=e1475]: target_uri="viking://resources/"
+              - generic [ref=e1476]: )
+              - generic [ref=e1477]: "# search(): Complex tasks requiring intent analysis"
+              - generic [ref=e1478]: results = await client.search(
+              - generic [ref=e1479]: "\"Help me implement user login functionality\","
+              - generic [ref=e1480]: session_info=session
+              - generic [ref=e1481]: )
+            - paragraph [ref=e1482]:
+              - strong [ref=e1483]: Selection Guide
+              - text: ":"
+            - list [ref=e1484]:
+              - listitem [ref=e1485]:
+                - text: Know exactly what you're looking for → Use
+                - code [ref=e1486]: "`find()`"
+              - listitem [ref=e1487]:
+                - text: Complex tasks needing multiple context types → Use
+                - code [ref=e1488]: "`search()`"
+            - heading "How do I use session management?" [level=3] [ref=e1489]
+            - paragraph [ref=e1490]: "Session management is a core capability of OpenViking, supporting conversation tracking and memory extraction:"
+            - code [ref=e1492]:
+              - generic [ref=e1493]: "# Create session"
+              - generic [ref=e1494]: session = client.session()
+              - generic [ref=e1495]: "# Add conversation messages"
+              - generic [ref=e1496]: "await session.add_message(\"user\", [{\"type\": \"text\", \"text\": \"Help me analyze performance issues in this code\"}])"
+              - generic [ref=e1497]: "await session.add_message(\"assistant\", [{\"type\": \"text\", \"text\": \"Let me analyze...\"}])"
+              - generic [ref=e1498]: "# Mark used context (for tracking)"
+              - generic [ref=e1499]: await session.used(["viking://resources/code/main.py"])
+              - generic [ref=e1500]: "# Commit session to trigger memory extraction"
+              - generic [ref=e1501]: await session.commit()
+            - heading "What memory types does OpenViking support?" [level=3] [ref=e1502]
+            - paragraph [ref=e1503]: "OpenViking has 6 built-in memory categories, automatically extracted during session commit:"
+            - table [ref=e1504]:
+              - rowgroup [ref=e1505]:
+                - row "Category Belongs To Description" [ref=e1506]:
+                  - columnheader "Category" [ref=e1507]
+                  - columnheader "Belongs To" [ref=e1508]
+                  - columnheader "Description" [ref=e1509]
+              - rowgroup [ref=e1510]:
+                - row "profile user User basic info (name, role, etc.)" [ref=e1511]:
+                  - cell "profile" [ref=e1512]:
+                    - strong [ref=e1513]: profile
+                  - cell "user" [ref=e1514]
+                  - cell "User basic info (name, role, etc.)" [ref=e1515]
+                - row "preferences user User preferences (code style, tool choices, etc.)" [ref=e1516]:
+                  - cell "preferences" [ref=e1517]:
+                    - strong [ref=e1518]: preferences
+                  - cell "user" [ref=e1519]
+                  - cell "User preferences (code style, tool choices, etc.)" [ref=e1520]
+                - row "entities user Entity memories (people, projects, organizations, etc.)" [ref=e1521]:
+                  - cell "entities" [ref=e1522]:
+                    - strong [ref=e1523]: entities
+                  - cell "user" [ref=e1524]
+                  - cell "Entity memories (people, projects, organizations, etc.)" [ref=e1525]
+                - row "events user Event records (decisions, milestones, etc.)" [ref=e1526]:
+                  - cell "events" [ref=e1527]:
+                    - strong [ref=e1528]: events
+                  - cell "user" [ref=e1529]
+                  - cell "Event records (decisions, milestones, etc.)" [ref=e1530]
+                - row "cases agent Cases learned by Agent" [ref=e1531]:
+                  - cell "cases" [ref=e1532]:
+                    - strong [ref=e1533]: cases
+                  - cell "agent" [ref=e1534]
+                  - cell "Cases learned by Agent" [ref=e1535]
+                - row "patterns agent Patterns learned by Agent" [ref=e1536]:
+                  - cell "patterns" [ref=e1537]:
+                    - strong [ref=e1538]: patterns
+                  - cell "agent" [ref=e1539]
+                  - cell "Patterns learned by Agent" [ref=e1540]
+            - heading "How do I use Unix-like filesystem APIs?" [level=3] [ref=e1541]
+            - code [ref=e1543]:
+              - generic [ref=e1544]: "# List directory contents"
+              - generic [ref=e1545]: items = await client.ls("viking://resources/")
+              - generic [ref=e1546]: "# Read full content (L2)"
+              - generic [ref=e1547]: content = await client.read("viking://resources/doc.md")
+              - generic [ref=e1548]: "# Get abstract (L0)"
+              - generic [ref=e1549]: abstract = await client.abstract("viking://resources")
+              - generic [ref=e1550]: "# Get overview (L1)"
+              - generic [ref=e1551]: overview = await client.overview("viking://resources")
+            - heading "Retrieval Optimization" [level=2] [ref=e1552]
+            - heading "How do I improve retrieval quality?" [level=3] [ref=e1553]
+            - list [ref=e1554]:
+              - listitem [ref=e1555]:
+                - strong [ref=e1556]: Use Rerank model
+                - text: ": Configuring Rerank significantly improves ranking effectiveness"
+              - listitem [ref=e1557]:
+                - strong [ref=e1558]:
+                  - text: Provide meaningful
+                  - code [ref=e1559]: "`reason`"
+                - text: ": Describe purpose when adding resources to help system understand resource value"
+              - listitem [ref=e1560]:
+                - strong [ref=e1561]: Organize directory structure properly
+                - text: ": Use"
+                - code [ref=e1562]: "`target`"
+                - text: parameter to group related resources together
+              - listitem [ref=e1563]:
+                - strong [ref=e1564]: Use session context
+                - text: ":"
+                - code [ref=e1565]: "`search()`"
+                - text: leverages session history for intent analysis
+              - listitem [ref=e1566]:
+                - strong [ref=e1567]: Choose appropriate Embedding mode
+                - text: ": Use"
+                - code [ref=e1568]: "`multimodal`"
+                - text: input for multimodal content
+            - heading "How is the retrieval result score calculated?" [level=3] [ref=e1569]
+            - paragraph [ref=e1570]: "OpenViking uses a score propagation mechanism:"
+            - code [ref=e1572]:
+              - generic [ref=e1573]: Final Score = 0.5 × Embedding Similarity + 0.5 × Parent Directory Score
+            - paragraph [ref=e1574]: This design gives content under high-scoring directories a boost, reflecting the importance of "contextual environment".
+            - heading "What is directory recursive retrieval?" [level=3] [ref=e1575]
+            - paragraph [ref=e1576]: "Directory recursive retrieval is OpenViking's innovative retrieval strategy:"
+            - list [ref=e1577]:
+              - listitem [ref=e1578]:
+                - strong [ref=e1579]: Intent Analysis
+                - text: ": Analyze query to generate multiple retrieval conditions"
+              - listitem [ref=e1580]:
+                - strong [ref=e1581]: Initial Positioning
+                - text: ": Vector retrieval to locate high-scoring directories"
+              - listitem [ref=e1582]:
+                - strong [ref=e1583]: Refined Exploration
+                - text: ": Secondary retrieval within high-scoring directories"
+              - listitem [ref=e1584]:
+                - strong [ref=e1585]: Recursive Drill-down
+                - text: ": Layer-by-layer recursion until convergence"
+              - listitem [ref=e1586]:
+                - strong [ref=e1587]: Result Aggregation
+                - text: ": Return the most relevant context"
+            - paragraph [ref=e1588]: This strategy finds semantically matching fragments while understanding the complete context of the information.
+            - heading "Troubleshooting" [level=2] [ref=e1589]
+            - heading "Resources not being indexed after adding" [level=3] [ref=e1590]
+            - paragraph [ref=e1591]:
+              - strong [ref=e1592]: Possible causes and solutions
+              - text: ":"
+            - list [ref=e1593]:
+              - listitem [ref=e1594]:
+                - paragraph [ref=e1595]:
+                  - strong [ref=e1596]: Didn't wait for processing to complete
+                - code [ref=e1598]:
+                  - generic [ref=e1599]: await client.add_resource("./doc.pdf")
+                  - generic [ref=e1600]: "await client.wait_processed() # Must wait"
+              - listitem [ref=e1601]:
+                - paragraph [ref=e1602]:
+                  - strong [ref=e1603]: Embedding model configuration error
+                - list [ref=e1604]:
+                  - listitem [ref=e1605]:
+                    - text: Check if
+                    - code [ref=e1606]: "`api_key`"
+                    - text: in
+                    - code [ref=e1607]: "`ov.conf`"
+                    - text: is correct
+                  - listitem [ref=e1608]: Confirm model name and endpoint are configured correctly
+              - listitem [ref=e1609]:
+                - paragraph [ref=e1610]:
+                  - strong [ref=e1611]: Unsupported file format
+                - list [ref=e1612]:
+                  - listitem [ref=e1613]: Check if file extension is in the supported list
+                  - listitem [ref=e1614]: Confirm file content is valid and not corrupted
+              - listitem [ref=e1615]:
+                - paragraph [ref=e1616]:
+                  - strong [ref=e1617]: View processing logs
+                - code [ref=e1619]:
+                  - generic [ref=e1620]: import logging
+                  - generic [ref=e1621]: logging.basicConfig(level=logging.DEBUG)
+            - heading "Search not returning expected results" [level=3] [ref=e1622]
+            - paragraph [ref=e1623]:
+              - strong [ref=e1624]: Troubleshooting steps
+              - text: ":"
+            - list [ref=e1625]:
+              - listitem [ref=e1626]:
+                - paragraph [ref=e1627]:
+                  - strong [ref=e1628]: Confirm resources have been processed
+                - code [ref=e1630]:
+                  - generic [ref=e1631]: "# Check if resources exist"
+                  - generic [ref=e1632]: items = await client.ls("viking://resources/")
+              - listitem [ref=e1633]:
+                - paragraph [ref=e1634]:
+                  - strong [ref=e1635]:
+                    - text: Check
+                    - code [ref=e1636]: "`target_uri`"
+                    - text: filter condition
+                - list [ref=e1637]:
+                  - listitem [ref=e1638]: Ensure search scope includes target resources
+                  - listitem [ref=e1639]: Try expanding search scope
+              - listitem [ref=e1640]:
+                - paragraph [ref=e1641]:
+                  - strong [ref=e1642]: Try different query approaches
+                - list [ref=e1643]:
+                  - listitem [ref=e1644]: Use more specific or broader keywords
+                  - listitem [ref=e1645]:
+                    - text: Compare effects of
+                    - code [ref=e1646]: "`find()`"
+                    - text: and
+                    - code [ref=e1647]: "`search()`"
+              - listitem [ref=e1648]:
+                - paragraph [ref=e1649]:
+                  - strong [ref=e1650]: Check L0 abstract quality
+                - code [ref=e1652]:
+                  - generic [ref=e1653]: abstract = await client.abstract("viking://resources/your-doc")
+                  - generic [ref=e1654]: "print(abstract) # Confirm abstract accurately reflects content"
+            - heading "Memory extraction not working" [level=3] [ref=e1655]
+            - paragraph [ref=e1656]:
+              - strong [ref=e1657]: Troubleshooting steps
+              - text: ":"
+            - list [ref=e1658]:
+              - listitem [ref=e1659]:
+                - paragraph [ref=e1660]:
+                  - strong [ref=e1661]:
+                    - text: Ensure
+                    - code [ref=e1662]: "`commit()`"
+                    - text: was called
+                - code [ref=e1664]:
+                  - generic [ref=e1665]: "await session.commit() # Triggers memory extraction"
+              - listitem [ref=e1666]:
+                - paragraph [ref=e1667]:
+                  - strong [ref=e1668]: Check VLM configuration
+                - list [ref=e1669]:
+                  - listitem [ref=e1670]: Memory extraction requires VLM model
+                  - listitem [ref=e1671]:
+                    - text: Confirm
+                    - code [ref=e1672]: "`vlm`"
+                    - text: configuration is correct
+              - listitem [ref=e1673]:
+                - paragraph [ref=e1674]:
+                  - strong [ref=e1675]: Confirm conversation content is meaningful
+                - list [ref=e1676]:
+                  - listitem [ref=e1677]: Casual chat may not produce memories
+                  - listitem [ref=e1678]: Needs to contain extractable information (preferences, entities, events, etc.)
+              - listitem [ref=e1679]:
+                - paragraph [ref=e1680]:
+                  - strong [ref=e1681]: View extracted memories
+                - code [ref=e1683]:
+                  - generic [ref=e1684]: memories = await client.find("", target_uri="viking://user/memories/")
+            - heading "Performance issues" [level=3] [ref=e1685]
+            - paragraph [ref=e1686]:
+              - strong [ref=e1687]: Optimization suggestions
+              - text: ":"
+            - list [ref=e1688]:
+              - listitem [ref=e1689]:
+                - strong [ref=e1690]: Batch processing
+                - text: ": Adding multiple resources at once is more efficient than one by one"
+              - listitem [ref=e1691]:
+                - strong [ref=e1692]:
+                  - text: Set appropriate
+                  - code [ref=e1693]: "`batch_size`"
+                - text: ": Adjust batch processing size in Embedding configuration"
+              - listitem [ref=e1694]:
+                - strong [ref=e1695]: Use local storage
+                - text: ": Use"
+                - code [ref=e1696]: "`local`"
+                - text: backend during development to reduce network latency
+              - listitem [ref=e1697]:
+                - strong [ref=e1698]: Async operations
+                - text: ": Fully utilize"
+                - code [ref=e1699]: "`AsyncOpenViking`"
+                - text: "'s async capabilities"
+            - heading "Deployment" [level=2] [ref=e1700]
+            - heading "What's the difference between embedded mode and service mode?" [level=3] [ref=e1701]
+            - table [ref=e1702]:
+              - rowgroup [ref=e1703]:
+                - row "Mode Use Case Characteristics" [ref=e1704]:
+                  - columnheader "Mode" [ref=e1705]
+                  - columnheader "Use Case" [ref=e1706]
+                  - columnheader "Characteristics" [ref=e1707]
+              - rowgroup [ref=e1708]:
+                - row "Embedded Local development, single-process apps Auto-starts AGFS subprocess, uses local vector index" [ref=e1709]:
+                  - cell "Embedded" [ref=e1710]:
+                    - strong [ref=e1711]: Embedded
+                  - cell "Local development, single-process apps" [ref=e1712]
+                  - cell "Auto-starts AGFS subprocess, uses local vector index" [ref=e1713]
+                - row "Service Mode Production, distributed deployment Connects to remote services, supports multi-instance concurrency, independently scalable" [ref=e1714]:
+                  - cell "Service Mode" [ref=e1715]:
+                    - strong [ref=e1716]: Service Mode
+                  - cell "Production, distributed deployment" [ref=e1717]
+                  - cell "Connects to remote services, supports multi-instance concurrency, independently scalable" [ref=e1718]
+            - code [ref=e1720]:
+              - generic [ref=e1721]: "# Embedded mode"
+              - generic [ref=e1722]: client = ov.AsyncOpenViking(path="./data")
+              - generic [ref=e1723]: "# Service mode"
+              - generic [ref=e1724]: client = ov.AsyncOpenViking(
+              - generic [ref=e1725]: vectordb_url="http://vectordb:5000",
+              - generic [ref=e1726]: agfs_url="http://agfs:8080"
+              - generic [ref=e1727]: )
+            - heading "Is OpenViking open source?" [level=3] [ref=e1728]
+            - paragraph [ref=e1729]: Yes, OpenViking is fully open source under the Apache 2.0 license.
+            - heading "Related Documentation" [level=2] [ref=e1730]
+            - list [ref=e1731]:
+              - listitem [ref=e1732]:
+                - link "Introduction" [ref=e1733] [cursor=pointer]:
+                  - /url: ../getting-started/introduction.md
+                - text: "- Understand OpenViking's design philosophy"
+              - listitem [ref=e1734]:
+                - link "Quick Start" [ref=e1735] [cursor=pointer]:
+                  - /url: ../getting-started/quickstart.md
+                - text: "- 5-minute tutorial"
+              - listitem [ref=e1736]:
+                - link "Architecture Overview" [ref=e1737] [cursor=pointer]:
+                  - /url: ../concepts/01-architecture.md
+                - text: "- Deep dive into system design"
+              - listitem [ref=e1738]:
+                - link "Retrieval Mechanism" [ref=e1739] [cursor=pointer]:
+                  - /url: ../concepts/06-retrieval.md
+                - text: "- Detailed retrieval process"
+              - listitem [ref=e1740]:
+                - link "Configuration Guide" [ref=e1741] [cursor=pointer]:
+                  - /url: ../configuration/configuration.md
+                - text: "- Complete configuration reference"
+      - complementary [ref=e85]:
+        - heading "Directory Navigation" [level=3] [ref=e86]
+        - navigation [ref=e273]:
+          - button "FAQ" [ref=e1742] [cursor=pointer]
+          - button "Basic Concepts" [ref=e1743] [cursor=pointer]
+          - button "What is OpenViking? What problems does it solve?" [ref=e1744] [cursor=pointer]
+          - button "What's the fundamental difference between OpenViking and traditional vector databases?" [ref=e1745] [cursor=pointer]
+          - button "What is the L0/L1/L2 layered model? Why is it needed?" [ref=e1746] [cursor=pointer]
+          - button "What is Viking URI? What's its purpose?" [ref=e1747] [cursor=pointer]
+          - button "Installation & Configuration" [ref=e1748] [cursor=pointer]
+          - button "What are the environment requirements?" [ref=e1749] [cursor=pointer]
+          - button "How do I install OpenViking?" [ref=e1750] [cursor=pointer]
+          - button "How do I configure OpenViking?" [ref=e1751] [cursor=pointer]
+          - button "What Embedding backends are supported?" [ref=e1752] [cursor=pointer]
+          - button "Usage Guide" [ref=e1753] [cursor=pointer]
+          - button "How do I initialize the client?" [ref=e1754] [cursor=pointer]
+          - button "What file formats are supported?" [ref=e1755] [cursor=pointer]
+          - button "How do I add resources?" [ref=e1756] [cursor=pointer]
+          - button "What's the difference between find() and search()? Which should I use?" [ref=e1757] [cursor=pointer]
+          - button "How do I use session management?" [ref=e1758] [cursor=pointer]
+          - button "What memory types does OpenViking support?" [ref=e1759] [cursor=pointer]
+          - button "How do I use Unix-like filesystem APIs?" [ref=e1760] [cursor=pointer]
+          - button "Retrieval Optimization" [ref=e1761] [cursor=pointer]
+          - button "How do I improve retrieval quality?" [ref=e1762] [cursor=pointer]
+          - button "How is the retrieval result score calculated?" [ref=e1763] [cursor=pointer]
+          - button "What is directory recursive retrieval?" [ref=e1764] [cursor=pointer]
+          - button "Troubleshooting" [ref=e1765] [cursor=pointer]
+          - button "Resources not being indexed after adding" [ref=e1766] [cursor=pointer]
+          - button "Search not returning expected results" [ref=e1767] [cursor=pointer]
+          - button "Memory extraction not working" [ref=e1768] [cursor=pointer]
+          - button "Performance issues" [ref=e1769] [cursor=pointer]
+          - button "Deployment" [ref=e1770] [cursor=pointer]
+          - button "What's the difference between embedded mode and service mode?" [ref=e1771] [cursor=pointer]
+          - button "Is OpenViking open source?" [ref=e1772] [cursor=pointer]
+          - button "Related Documentation" [ref=e799] [cursor=pointer]

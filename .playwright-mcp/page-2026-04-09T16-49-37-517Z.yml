@@ -1,0 +1,441 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Doc" [ref=e8] [cursor=pointer]:
+            - /url: /docs
+            - button "Doc" [ref=e9]
+          - link "Blog" [ref=e10] [cursor=pointer]:
+            - /url: /blog
+            - button "Blog" [ref=e11]
+        - link "OpenViking Logo OpenViking" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img "OpenViking Logo" [ref=e14]
+          - generic [ref=e16]: OpenViking
+        - link "GitHub" [ref=e18] [cursor=pointer]:
+          - /url: https://github.com/volcengine/OpenViking
+          - button "GitHub" [ref=e19]
+    - generic [ref=e21]:
+      - complementary [ref=e22]:
+        - heading "Documentation" [level=2] [ref=e23]
+        - navigation [ref=e24]:
+          - button "Getting Started" [ref=e26] [cursor=pointer]:
+            - img [ref=e27]
+            - img [ref=e29]
+            - generic [ref=e32]: Getting Started
+          - button "API" [ref=e37] [cursor=pointer]:
+            - img [ref=e38]
+            - img [ref=e40]
+            - generic [ref=e44]: API
+          - generic [ref=e45]:
+            - button "Concepts" [active] [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - img [ref=e49]
+              - generic [ref=e51]: Concepts
+            - generic [ref=e1178]:
+              - button "Architecture" [ref=e1179] [cursor=pointer]
+              - button "Context Types" [ref=e1180] [cursor=pointer]
+              - button "Viking URI" [ref=e1181] [cursor=pointer]
+              - button "Context Layers" [ref=e1182] [cursor=pointer]
+              - button "Storage" [ref=e1183] [cursor=pointer]
+              - button "Retrieval" [ref=e1184] [cursor=pointer]
+              - button "Extraction" [ref=e1185] [cursor=pointer]
+              - button "Session" [ref=e1186] [cursor=pointer]
+          - button "Configuration" [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+            - img [ref=e56]
+            - generic [ref=e59]: Configuration
+          - button "FAQ" [ref=e61] [cursor=pointer]:
+            - img [ref=e62]
+            - img [ref=e64]
+            - generic [ref=e67]: FAQ
+          - button "About" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - img [ref=e72]
+            - generic [ref=e74]: About
+      - main [ref=e75]:
+        - article [ref=e800]:
+          - generic [ref=e802]:
+            - heading "Retrieval" [level=1] [ref=e803]
+            - paragraph [ref=e804]:
+              - text: "OpenViking provides two search methods:"
+              - code [ref=e805]: "`find`"
+              - text: for simple semantic search and
+              - code [ref=e806]: "`search`"
+              - text: for complex retrieval with session context.
+            - heading "find vs search" [level=2] [ref=e807]
+            - table [ref=e808]:
+              - rowgroup [ref=e809]:
+                - row "Aspect find search" [ref=e810]:
+                  - columnheader "Aspect" [ref=e811]
+                  - columnheader "find" [ref=e812]
+                  - columnheader "search" [ref=e813]
+              - rowgroup [ref=e814]:
+                - row "Intent Analysis No Yes" [ref=e815]:
+                  - cell "Intent Analysis" [ref=e816]
+                  - cell "No" [ref=e817]
+                  - cell "Yes" [ref=e818]
+                - row "Session Context No Yes" [ref=e819]:
+                  - cell "Session Context" [ref=e820]
+                  - cell "No" [ref=e821]
+                  - cell "Yes" [ref=e822]
+                - row "Query Expansion No Yes" [ref=e823]:
+                  - cell "Query Expansion" [ref=e824]
+                  - cell "No" [ref=e825]
+                  - cell "Yes" [ref=e826]
+                - row "Default Limit 10 10" [ref=e827]:
+                  - cell "Default Limit" [ref=e828]
+                  - cell "10" [ref=e829]
+                  - cell "10" [ref=e830]
+                - row "Use Case Simple queries Conversational search" [ref=e831]:
+                  - cell "Use Case" [ref=e832]
+                  - cell "Simple queries" [ref=e833]
+                  - cell "Conversational search" [ref=e834]
+            - heading "API Reference" [level=2] [ref=e835]
+            - heading "find()" [level=3] [ref=e836]
+            - paragraph [ref=e837]: Basic vector similarity search.
+            - paragraph [ref=e838]:
+              - strong [ref=e839]: Signature
+            - code [ref=e841]:
+              - generic [ref=e842]: def find(
+              - generic [ref=e843]: self,
+              - generic [ref=e844]: "query: str,"
+              - generic [ref=e845]: "target_uri: str = \"\","
+              - generic [ref=e846]: "limit: int = 10,"
+              - generic [ref=e847]: "score_threshold: Optional[float] = None,"
+              - generic [ref=e848]: "filter: Optional[Dict] = None,"
+              - generic [ref=e849]: ) -> FindResult
+            - paragraph [ref=e850]:
+              - strong [ref=e851]: Parameters
+            - table [ref=e852]:
+              - rowgroup [ref=e853]:
+                - row "Parameter Type Required Default Description" [ref=e854]:
+                  - columnheader "Parameter" [ref=e855]
+                  - columnheader "Type" [ref=e856]
+                  - columnheader "Required" [ref=e857]
+                  - columnheader "Default" [ref=e858]
+                  - columnheader "Description" [ref=e859]
+              - rowgroup [ref=e860]:
+                - row "query str Yes - Search query string" [ref=e861]:
+                  - cell "query" [ref=e862]
+                  - cell "str" [ref=e863]
+                  - cell "Yes" [ref=e864]
+                  - cell "-" [ref=e865]
+                  - cell "Search query string" [ref=e866]
+                - row "target_uri str No \"\" Limit search to specific URI prefix" [ref=e867]:
+                  - cell "target_uri" [ref=e868]
+                  - cell "str" [ref=e869]
+                  - cell "No" [ref=e870]
+                  - cell "\"\"" [ref=e871]
+                  - cell "Limit search to specific URI prefix" [ref=e872]
+                - row "limit int No 10 Maximum number of results" [ref=e873]:
+                  - cell "limit" [ref=e874]
+                  - cell "int" [ref=e875]
+                  - cell "No" [ref=e876]
+                  - cell "10" [ref=e877]
+                  - cell "Maximum number of results" [ref=e878]
+                - row "score_threshold float No None Minimum relevance score threshold" [ref=e879]:
+                  - cell "score_threshold" [ref=e880]
+                  - cell "float" [ref=e881]
+                  - cell "No" [ref=e882]
+                  - cell "None" [ref=e883]
+                  - cell "Minimum relevance score threshold" [ref=e884]
+                - row "filter Dict No None Metadata filters" [ref=e885]:
+                  - cell "filter" [ref=e886]
+                  - cell "Dict" [ref=e887]
+                  - cell "No" [ref=e888]
+                  - cell "None" [ref=e889]
+                  - cell "Metadata filters" [ref=e890]
+            - paragraph [ref=e891]:
+              - strong [ref=e892]: Returns
+            - table [ref=e893]:
+              - rowgroup [ref=e894]:
+                - row "Type Description" [ref=e895]:
+                  - columnheader "Type" [ref=e896]
+                  - columnheader "Description" [ref=e897]
+              - rowgroup [ref=e898]:
+                - row "FindResult Search results containing contexts" [ref=e899]:
+                  - cell "FindResult" [ref=e900]
+                  - cell "Search results containing contexts" [ref=e901]
+            - paragraph [ref=e902]:
+              - strong [ref=e903]: FindResult Structure
+            - code [ref=e905]:
+              - generic [ref=e906]: "class FindResult:"
+              - generic [ref=e907]: "memories: List[MatchedContext] # Memory contexts"
+              - generic [ref=e908]: "resources: List[MatchedContext] # Resource contexts"
+              - generic [ref=e909]: "skills: List[MatchedContext] # Skill contexts"
+              - generic [ref=e910]: "query_plan: Optional[QueryPlan] # Query plan (search only)"
+              - generic [ref=e911]: "query_results: Optional[List[QueryResult]] # Detailed results"
+              - generic [ref=e912]: "total: int # Total count (auto-calculated)"
+            - paragraph [ref=e913]:
+              - strong [ref=e914]: MatchedContext Structure
+            - code [ref=e916]:
+              - generic [ref=e917]: "class MatchedContext:"
+              - generic [ref=e918]: "uri: str # Viking URI"
+              - generic [ref=e919]: "context_type: ContextType # \"resource\", \"memory\", or \"skill\""
+              - generic [ref=e920]: "is_leaf: bool # Whether it's a leaf node"
+              - generic [ref=e921]: "abstract: str # L0 content"
+              - generic [ref=e922]: "category: str # Category"
+              - generic [ref=e923]: "score: float # Relevance score (0-1)"
+              - generic [ref=e924]: "match_reason: str # Why this matched"
+              - generic [ref=e925]: "relations: List[RelatedContext] # Related contexts"
+            - paragraph [ref=e926]:
+              - strong [ref=e927]: "Example: Basic Search"
+            - code [ref=e929]:
+              - generic [ref=e930]: import openviking as ov
+              - generic [ref=e931]: client = ov.OpenViking(path="./data")
+              - generic [ref=e932]: client.initialize()
+              - generic [ref=e933]: results = client.find("how to authenticate users")
+              - generic [ref=e934]: "for ctx in results.resources:"
+              - generic [ref=e935]: "print(f\"URI: {ctx.uri}\")"
+              - generic [ref=e936]: "print(f\"Score: {ctx.score:.3f}\")"
+              - generic [ref=e937]: "print(f\"Type: {ctx.context_type}\")"
+              - generic [ref=e938]: "print(f\"Abstract: {ctx.abstract[:100]}...\")"
+              - generic [ref=e939]: print("---")
+              - generic [ref=e940]: client.close()
+            - paragraph [ref=e941]:
+              - strong [ref=e942]: "Example: Search with Target URI"
+            - code [ref=e944]:
+              - generic [ref=e945]: import openviking as ov
+              - generic [ref=e946]: client = ov.OpenViking(path="./data")
+              - generic [ref=e947]: client.initialize()
+              - generic [ref=e948]: "# Search only in resources"
+              - generic [ref=e949]: results = client.find(
+              - generic [ref=e950]: "\"authentication\","
+              - generic [ref=e951]: target_uri="viking://resources/"
+              - generic [ref=e952]: )
+              - generic [ref=e953]: "# Search only in user memories"
+              - generic [ref=e954]: results = client.find(
+              - generic [ref=e955]: "\"preferences\","
+              - generic [ref=e956]: target_uri="viking://user/memories/"
+              - generic [ref=e957]: )
+              - generic [ref=e958]: "# Search only in skills"
+              - generic [ref=e959]: results = client.find(
+              - generic [ref=e960]: "\"web search\","
+              - generic [ref=e961]: target_uri="viking://skills/"
+              - generic [ref=e962]: )
+              - generic [ref=e963]: "# Search in specific project"
+              - generic [ref=e964]: results = client.find(
+              - generic [ref=e965]: "\"API endpoints\","
+              - generic [ref=e966]: target_uri="viking://resources/my-project/"
+              - generic [ref=e967]: )
+              - generic [ref=e968]: client.close()
+            - separator [ref=e969]
+            - heading "search()" [level=3] [ref=e970]
+            - paragraph [ref=e971]: Search with session context and intent analysis.
+            - paragraph [ref=e972]:
+              - strong [ref=e973]: Signature
+            - code [ref=e975]:
+              - generic [ref=e976]: def search(
+              - generic [ref=e977]: self,
+              - generic [ref=e978]: "query: str,"
+              - generic [ref=e979]: "target_uri: str = \"\","
+              - generic [ref=e980]: "session: Optional[Session] = None,"
+              - generic [ref=e981]: "limit: int = 3,"
+              - generic [ref=e982]: "score_threshold: Optional[float] = None,"
+              - generic [ref=e983]: "filter: Optional[Dict] = None,"
+              - generic [ref=e984]: ) -> FindResult
+            - paragraph [ref=e985]:
+              - strong [ref=e986]: Parameters
+            - table [ref=e987]:
+              - rowgroup [ref=e988]:
+                - row "Parameter Type Required Default Description" [ref=e989]:
+                  - columnheader "Parameter" [ref=e990]
+                  - columnheader "Type" [ref=e991]
+                  - columnheader "Required" [ref=e992]
+                  - columnheader "Default" [ref=e993]
+                  - columnheader "Description" [ref=e994]
+              - rowgroup [ref=e995]:
+                - row "query str Yes - Search query string" [ref=e996]:
+                  - cell "query" [ref=e997]
+                  - cell "str" [ref=e998]
+                  - cell "Yes" [ref=e999]
+                  - cell "-" [ref=e1000]
+                  - cell "Search query string" [ref=e1001]
+                - row "target_uri str No \"\" Limit search to specific URI prefix" [ref=e1002]:
+                  - cell "target_uri" [ref=e1003]
+                  - cell "str" [ref=e1004]
+                  - cell "No" [ref=e1005]
+                  - cell "\"\"" [ref=e1006]
+                  - cell "Limit search to specific URI prefix" [ref=e1007]
+                - row "session Session No None Session for context-aware search" [ref=e1008]:
+                  - cell "session" [ref=e1009]
+                  - cell "Session" [ref=e1010]
+                  - cell "No" [ref=e1011]
+                  - cell "None" [ref=e1012]
+                  - cell "Session for context-aware search" [ref=e1013]
+                - row "limit int No 3 Maximum number of results" [ref=e1014]:
+                  - cell "limit" [ref=e1015]
+                  - cell "int" [ref=e1016]
+                  - cell "No" [ref=e1017]
+                  - cell "3" [ref=e1018]
+                  - cell "Maximum number of results" [ref=e1019]
+                - row "score_threshold float No None Minimum relevance score threshold" [ref=e1020]:
+                  - cell "score_threshold" [ref=e1021]
+                  - cell "float" [ref=e1022]
+                  - cell "No" [ref=e1023]
+                  - cell "None" [ref=e1024]
+                  - cell "Minimum relevance score threshold" [ref=e1025]
+                - row "filter Dict No None Metadata filters" [ref=e1026]:
+                  - cell "filter" [ref=e1027]
+                  - cell "Dict" [ref=e1028]
+                  - cell "No" [ref=e1029]
+                  - cell "None" [ref=e1030]
+                  - cell "Metadata filters" [ref=e1031]
+            - paragraph [ref=e1032]:
+              - strong [ref=e1033]: Returns
+            - table [ref=e1034]:
+              - rowgroup [ref=e1035]:
+                - row "Type Description" [ref=e1036]:
+                  - columnheader "Type" [ref=e1037]
+                  - columnheader "Description" [ref=e1038]
+              - rowgroup [ref=e1039]:
+                - row "FindResult Search results with query plan and contexts" [ref=e1040]:
+                  - cell "FindResult" [ref=e1041]
+                  - cell "Search results with query plan and contexts" [ref=e1042]
+            - paragraph [ref=e1043]:
+              - strong [ref=e1044]: "Example: Session-Aware Search"
+            - code [ref=e1046]:
+              - generic [ref=e1047]: import openviking as ov
+              - generic [ref=e1048]: from openviking.message import TextPart
+              - generic [ref=e1049]: client = ov.OpenViking(path="./data")
+              - generic [ref=e1050]: client.initialize()
+              - generic [ref=e1051]: "# Create session with conversation context"
+              - generic [ref=e1052]: session = client.session()
+              - generic [ref=e1053]: session.add_message("user", [
+              - generic [ref=e1054]: TextPart(text="I'm building a login page with OAuth")
+              - generic [ref=e1055]: "])"
+              - generic [ref=e1056]: session.add_message("assistant", [
+              - generic [ref=e1057]: TextPart(text="I can help you with OAuth implementation.")
+              - generic [ref=e1058]: "])"
+              - generic [ref=e1059]: "# Search understands the conversation context"
+              - generic [ref=e1060]: results = client.search(
+              - generic [ref=e1061]: "\"best practices\","
+              - generic [ref=e1062]: session=session
+              - generic [ref=e1063]: )
+              - generic [ref=e1064]: "for ctx in results.resources:"
+              - generic [ref=e1065]: "print(f\"Found: {ctx.uri}\")"
+              - generic [ref=e1066]: "print(f\"Abstract: {ctx.abstract[:200]}...\")"
+              - generic [ref=e1067]: client.close()
+            - paragraph [ref=e1068]:
+              - strong [ref=e1069]: "Example: Search Without Session"
+            - code [ref=e1071]:
+              - generic [ref=e1072]: import openviking as ov
+              - generic [ref=e1073]: client = ov.OpenViking(path="./data")
+              - generic [ref=e1074]: client.initialize()
+              - generic [ref=e1075]: "# search can also be used without session"
+              - generic [ref=e1076]: "# It still performs intent analysis on the query"
+              - generic [ref=e1077]: results = client.search(
+              - generic [ref=e1078]: "\"how to implement OAuth 2.0 authorization code flow\","
+              - generic [ref=e1079]: )
+              - generic [ref=e1080]: "for ctx in results.resources:"
+              - generic [ref=e1081]: "print(f\"Found: {ctx.uri} (score: {ctx.score:.3f})\")"
+              - generic [ref=e1082]: client.close()
+            - separator [ref=e1083]
+            - heading "Retrieval Pipeline" [level=2] [ref=e1084]
+            - code [ref=e1086]:
+              - generic [ref=e1087]: Query → Intent Analysis → Vector Search (L0) → Rerank (L1) → Results
+            - list [ref=e1088]:
+              - listitem [ref=e1089]:
+                - strong [ref=e1090]: Intent Analysis
+                - text: "(search only): Understand query intent, expand queries"
+              - listitem [ref=e1091]:
+                - strong [ref=e1092]: Vector Search
+                - text: ": Find candidates using Embedding"
+              - listitem [ref=e1093]:
+                - strong [ref=e1094]: Rerank
+                - text: ": Re-score using content for accuracy"
+              - listitem [ref=e1095]:
+                - strong [ref=e1096]: Results
+                - text: ": Return top-k contexts"
+            - heading "Working with Results" [level=2] [ref=e1097]
+            - heading "Read Content Progressively" [level=3] [ref=e1098]
+            - code [ref=e1100]:
+              - generic [ref=e1101]: import openviking as ov
+              - generic [ref=e1102]: client = ov.OpenViking(path="./data")
+              - generic [ref=e1103]: client.initialize()
+              - generic [ref=e1104]: results = client.find("authentication")
+              - generic [ref=e1105]: "for ctx in results.resources:"
+              - generic [ref=e1106]: "# Start with L0 (abstract) - already in ctx.abstract"
+              - generic [ref=e1107]: "print(f\"Abstract: {ctx.abstract}\")"
+              - generic [ref=e1108]: "if not ctx.is_leaf:"
+              - generic [ref=e1109]: "# Get L1 (overview)"
+              - generic [ref=e1110]: overview = client.overview(ctx.uri)
+              - generic [ref=e1111]: "print(f\"Overview: {overview[:500]}...\")"
+              - generic [ref=e1112]: "else:"
+              - generic [ref=e1113]: "# Load L2 (content)"
+              - generic [ref=e1114]: content = client.read(ctx.uri)
+              - generic [ref=e1115]: "print(f\"File content: {content}\")"
+              - generic [ref=e1116]: client.close()
+            - heading "Get Related Resources" [level=3] [ref=e1117]
+            - code [ref=e1119]:
+              - generic [ref=e1120]: import openviking as ov
+              - generic [ref=e1121]: client = ov.OpenViking(path="./data")
+              - generic [ref=e1122]: client.initialize()
+              - generic [ref=e1123]: results = client.find("OAuth implementation")
+              - generic [ref=e1124]: "for ctx in results.resources:"
+              - generic [ref=e1125]: "print(f\"Found: {ctx.uri}\")"
+              - generic [ref=e1126]: "# Get related resources"
+              - generic [ref=e1127]: relations = client.relations(ctx.uri)
+              - generic [ref=e1128]: "for rel in relations:"
+              - generic [ref=e1129]: "print(f\" Related: {rel['uri']} - {rel['reason']}\")"
+              - generic [ref=e1130]: client.close()
+            - heading "Best Practices" [level=2] [ref=e1131]
+            - heading "Use Specific Queries" [level=3] [ref=e1132]
+            - code [ref=e1134]:
+              - generic [ref=e1135]: "# Good - specific query"
+              - generic [ref=e1136]: results = client.find("OAuth 2.0 authorization code flow implementation")
+              - generic [ref=e1137]: "# Less effective - too broad"
+              - generic [ref=e1138]: results = client.find("auth")
+            - heading "Scope Your Searches" [level=3] [ref=e1139]
+            - code [ref=e1141]:
+              - generic [ref=e1142]: "# Search in relevant scope for better results"
+              - generic [ref=e1143]: results = client.find(
+              - generic [ref=e1144]: "\"error handling\","
+              - generic [ref=e1145]: target_uri="viking://resources/my-project/"
+              - generic [ref=e1146]: )
+            - heading "Use Session Context for Conversations" [level=3] [ref=e1147]
+            - code [ref=e1149]:
+              - generic [ref=e1150]: "# For conversational search, use session"
+              - generic [ref=e1151]: from openviking.message import TextPart
+              - generic [ref=e1152]: session = client.session()
+              - generic [ref=e1153]: session.add_message("user", [
+              - generic [ref=e1154]: TextPart(text="I'm building a login page")
+              - generic [ref=e1155]: "])"
+              - generic [ref=e1156]: "# Search understands the context"
+              - generic [ref=e1157]: results = client.search("best practices", session=session)
+            - heading "Related Documentation" [level=3] [ref=e1158]
+            - list [ref=e1159]:
+              - listitem [ref=e1160]:
+                - link "Resources" [ref=e1161] [cursor=pointer]:
+                  - /url: resources.md
+                - text: "- Resource management"
+              - listitem [ref=e1162]:
+                - link "Sessions" [ref=e1163] [cursor=pointer]:
+                  - /url: sessions.md
+                - text: "- Session context"
+              - listitem [ref=e1164]:
+                - link "Context Layers" [ref=e1165] [cursor=pointer]:
+                  - /url: ../concepts/context-layers.md
+                - text: "- L0/L1/L2"
+      - complementary [ref=e85]:
+        - heading "Directory Navigation" [level=3] [ref=e86]
+        - navigation [ref=e273]:
+          - button "Retrieval" [ref=e1166] [cursor=pointer]
+          - button "find vs search" [ref=e1167] [cursor=pointer]
+          - button "API Reference" [ref=e790] [cursor=pointer]
+          - button "find()" [ref=e1168] [cursor=pointer]
+          - button "search()" [ref=e1169] [cursor=pointer]
+          - button "Retrieval Pipeline" [ref=e1170] [cursor=pointer]
+          - button "Working with Results" [ref=e1171] [cursor=pointer]
+          - button "Read Content Progressively" [ref=e1172] [cursor=pointer]
+          - button "Get Related Resources" [ref=e1173] [cursor=pointer]
+          - button "Best Practices" [ref=e1174] [cursor=pointer]
+          - button "Use Specific Queries" [ref=e1175] [cursor=pointer]
+          - button "Scope Your Searches" [ref=e1176] [cursor=pointer]
+          - button "Use Session Context for Conversations" [ref=e1177] [cursor=pointer]
+          - button "Related Documentation" [ref=e799] [cursor=pointer]

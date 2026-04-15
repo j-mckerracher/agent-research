@@ -48,7 +48,7 @@ HEARTBEAT_INTERVAL_SECONDS = 180
 RUN_PREFIX = "RUN:"
 HELP_PREFIX = "HELP:"
 
-_BACKEND_KEYWORDS: frozenset[str] = frozenset({"copilot", "claude"})
+_BACKEND_KEYWORDS: frozenset[str] = frozenset({"github-copilot", "claude-code"})
 
 HELP_MESSAGE_ADO = """\
 **🤖 ADO Workflow Trigger — command reference**
@@ -60,13 +60,13 @@ RUN: <change-id> [repo-path] [backend]
 **Arguments:**
 • `change-id` — Work item ID *(required)*. Accepts `WI-5002532` or bare `5002532`.
 • `repo-path` — Absolute path to the repository root *(optional)*. Uses the server default when omitted.
-• `backend` — AI backend to use: `claude` or `copilot` *(optional)*. Auto-detected when omitted.
+• `backend` — AI backend to use: `claude-code` or `github-copilot` *(optional)*. Auto-detected when omitted.
 
 **Examples:**
 ```
 RUN: WI-5002532
-RUN: WI-5002532 claude
-RUN: WI-5002532 /Users/you/Code/my-repo claude
+RUN: WI-5002532 claude-code
+RUN: WI-5002532 /Users/you/Code/my-repo claude-code
 ```
 Type `HELP:` at any time to see this message again.\
 """
@@ -79,23 +79,28 @@ HELP_MESSAGE_GENERAL = """\
 
 **Start a general run:**
 ```
-RUN: --backend <claude|copilot> --prompt "<prompt>" --repo <path> [--model <model>] [--agent <file>]
+RUN: --backend <backend> --prompt "<prompt>" --repo <repo-name> [--model <model>] [--agent <file>]
 ```
 **Required arguments:**
-• `--backend` — AI backend: `claude` or `copilot`.
+• `--backend` — AI backend: `claude-code` or `github-copilot`.
 • `--prompt` — The prompt to send (wrap in quotes).
-• `--repo` — Absolute path to the repository.
+• `--repo` — Repository name (e.g. `mcs-products-mono-ui`) — searched under `~/Code`.
 
 **Optional arguments:**
-• `--model` — Model identifier (e.g. `sonnet`, `opus`, `gpt-4.1`).
+• `--model` — Model identifier (see below).
 • `--agent` — Path to an `.agent.md` file.
 • Any extra `--key value` pairs are passed through as metadata.
 
+**Available models:**
+  `github-copilot` → gpt-5.4 | gpt-5.3-codex | gpt-5.2 | gpt-5.1 | gpt-5.4-mini | gpt-5-mini | gpt-4.1 | claude-sonnet-4.6 | claude-opus-4.6 | claude-haiku-4.5
+  `claude-code`    → claude-opus-4-5 | claude-sonnet-4-5 | claude-haiku-4-5
+
 **Examples:**
 ```
-RUN: --backend claude --prompt "Fix failing tests" --repo /Users/you/Code/my-repo
-RUN: --backend claude --model sonnet --prompt "Add unit tests" --repo /path --agent spike.agent.md
+RUN: --backend github-copilot --model claude-sonnet-4.6 --prompt "Fix failing tests" --repo mcs-products-mono-ui
+RUN: --backend claude-code --model claude-sonnet-4-5 --prompt "Add unit tests" --repo my-repo --agent spike.agent.md
 ```
+If the repo is not found in `~/Code`, the server will prompt for an SSH clone URL.
 Type `HELP:` at any time to see this message again.\
 """
 
@@ -219,7 +224,7 @@ def parse_trigger(content: str) -> tuple[str, str | None, str | None] | None:
         RUN: <change-id> <repo-path>
         RUN: <change-id> <repo-path> <backend>
 
-    Where ``<backend>`` is ``claude`` or ``copilot`` (case-insensitive) and
+    Where ``<backend>`` is ``claude-code`` or ``github-copilot`` (case-insensitive) and
     ``<repo-path>`` is any other token (or multi-word string).  A backend
     keyword appearing as the *last* whitespace-delimited token is always
     recognised as the backend, regardless of what precedes it.
@@ -280,7 +285,7 @@ def parse_general_trigger(
 
     Accepted form::
 
-        RUN: --backend claude --prompt "Fix the bug" --repo /path [--model sonnet] [--agent spike.agent.md]
+        RUN: --backend claude-code --prompt "Fix the bug" --repo my-repo [--model claude-sonnet-4-5] [--agent spike.agent.md]
 
     Returns a dict with keys ``backend``, ``model``, ``prompt``, ``repo``,
     ``agent`` plus any extra ``--key value`` pairs, or *None* if the message

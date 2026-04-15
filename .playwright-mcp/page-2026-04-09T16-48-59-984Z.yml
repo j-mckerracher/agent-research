@@ -1,0 +1,217 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Doc" [ref=e8] [cursor=pointer]:
+            - /url: /docs
+            - button "Doc" [ref=e9]
+          - link "Blog" [ref=e10] [cursor=pointer]:
+            - /url: /blog
+            - button "Blog" [ref=e11]
+        - link "OpenViking Logo OpenViking" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img "OpenViking Logo" [ref=e14]
+          - generic [ref=e16]: OpenViking
+        - link "GitHub" [ref=e18] [cursor=pointer]:
+          - /url: https://github.com/volcengine/OpenViking
+          - button "GitHub" [ref=e19]
+    - generic [ref=e21]:
+      - complementary [ref=e22]:
+        - heading "Documentation" [level=2] [ref=e23]
+        - navigation [ref=e24]:
+          - generic [ref=e25]:
+            - button "Getting Started" [ref=e26] [cursor=pointer]:
+              - img [ref=e27]
+              - img [ref=e29]
+              - generic [ref=e32]: Getting Started
+            - generic [ref=e33]:
+              - button "Introduction" [ref=e34] [cursor=pointer]
+              - button "Quickstart" [active] [ref=e35] [cursor=pointer]
+          - button "API" [ref=e37] [cursor=pointer]:
+            - img [ref=e38]
+            - img [ref=e40]
+            - generic [ref=e44]: API
+          - button "Concepts" [ref=e46] [cursor=pointer]:
+            - img [ref=e47]
+            - img [ref=e49]
+            - generic [ref=e51]: Concepts
+          - button "Configuration" [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+            - img [ref=e56]
+            - generic [ref=e59]: Configuration
+          - button "FAQ" [ref=e61] [cursor=pointer]:
+            - img [ref=e62]
+            - img [ref=e64]
+            - generic [ref=e67]: FAQ
+          - button "About" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - img [ref=e72]
+            - generic [ref=e74]: About
+      - main [ref=e75]:
+        - article [ref=e283]:
+          - generic [ref=e285]:
+            - heading "Quick Start" [level=1] [ref=e286]
+            - paragraph [ref=e287]: Get started with OpenViking in 5 minutes.
+            - heading "Prerequisites" [level=2] [ref=e288]
+            - paragraph [ref=e289]: "Before using OpenViking, ensure your environment meets the following requirements:"
+            - list [ref=e290]:
+              - listitem [ref=e291]:
+                - strong [ref=e292]: Python Version
+                - text: ": 3.9 or higher"
+              - listitem [ref=e293]:
+                - strong [ref=e294]: Operating System
+                - text: ": Linux, macOS, Windows"
+              - listitem [ref=e295]:
+                - strong [ref=e296]: Network Connection
+                - text: ": Stable network connection required (for downloading dependencies and accessing model services)"
+            - heading "Installation" [level=2] [ref=e297]
+            - code [ref=e299]:
+              - generic [ref=e300]: pip install openviking
+            - heading "Model Preparation" [level=2] [ref=e301]
+            - paragraph [ref=e302]: "OpenViking requires the following model capabilities:"
+            - list [ref=e303]:
+              - listitem [ref=e304]:
+                - strong [ref=e305]: VLM Model
+                - text: ": For image and content understanding"
+              - listitem [ref=e306]:
+                - strong [ref=e307]: Embedding Model
+                - text: ": For vectorization and semantic retrieval"
+            - paragraph [ref=e308]: "OpenViking supports multiple model services:"
+            - list [ref=e309]:
+              - listitem [ref=e310]:
+                - strong [ref=e311]: Volcengine (Doubao Models)
+                - text: ": Recommended, cost-effective with good performance, free quota for new users. For purchase and activation, see:"
+                - link "Volcengine Purchase Guide" [ref=e312] [cursor=pointer]:
+                  - /url: ../configuration/volcengine-purchase-guide.md
+              - listitem [ref=e313]:
+                - strong [ref=e314]: OpenAI Models
+                - text: ": Supports GPT-4V and other VLM models, plus OpenAI Embedding models"
+              - listitem [ref=e315]:
+                - strong [ref=e316]: Other Custom Model Services
+                - text: ": Supports model services compatible with OpenAI API format"
+            - heading "Configuration" [level=2] [ref=e317]
+            - heading "Configuration File Template" [level=3] [ref=e318]
+            - paragraph [ref=e319]:
+              - text: Create a configuration file
+              - code [ref=e320]: "`ov.conf`"
+              - text: ":"
+            - code [ref=e322]:
+              - generic [ref=e323]: "{"
+              - generic [ref=e324]: "\"embedding\": {"
+              - generic [ref=e325]: "\"dense\": {"
+              - generic [ref=e326]: "\"api_base\" : \"<api-endpoint>\","
+              - generic [ref=e327]: "\"api_key\" : \"<your-api-key>\","
+              - generic [ref=e328]: "\"backend\" : \"<backend-type>\","
+              - generic [ref=e329]: "\"dimension\": 1024,"
+              - generic [ref=e330]: "\"model\" : \"<model-name>\""
+              - generic [ref=e331]: "}"
+              - generic [ref=e332]: "},"
+              - generic [ref=e333]: "\"vlm\": {"
+              - generic [ref=e334]: "\"api_base\" : \"<api-endpoint>\","
+              - generic [ref=e335]: "\"api_key\" : \"<your-api-key>\","
+              - generic [ref=e336]: "\"backend\" : \"<backend-type>\","
+              - generic [ref=e337]: "\"model\" : \"<model-name>\""
+              - generic [ref=e338]: "}"
+              - generic [ref=e339]: "}"
+            - heading "Configuration Examples" [level=3] [ref=e340]
+            - group [ref=e341]:
+              - 'generic "Example 1: Using Volcengine (Doubao Models)" [ref=e342]'
+            - group [ref=e343]:
+              - 'generic "Example 2: Using OpenAI Models" [ref=e344]'
+            - heading "Set Environment Variable" [level=3] [ref=e345]
+            - paragraph [ref=e346]: "After creating the configuration file, set the environment variable to point to it:"
+            - code [ref=e348]:
+              - generic [ref=e349]: export OPENVIKING_CONFIG_FILE=ov.conf
+            - heading "Run Your First Example" [level=2] [ref=e350]
+            - heading "Create Python Script" [level=3] [ref=e351]
+            - paragraph [ref=e352]:
+              - text: Create
+              - code [ref=e353]: "`example.py`"
+              - text: ":"
+            - code [ref=e355]:
+              - generic [ref=e356]: import openviking as ov
+              - generic [ref=e357]: "# Initialize OpenViking client with data directory"
+              - generic [ref=e358]: client = ov.OpenViking(path="./data")
+              - generic [ref=e359]: "try:"
+              - generic [ref=e360]: "# Initialize the client"
+              - generic [ref=e361]: client.initialize()
+              - generic [ref=e362]: "# Add resource (supports URL, file, or directory)"
+              - generic [ref=e363]: add_result = client.add_resource(
+              - generic [ref=e364]: path="https://raw.githubusercontent.com/volcengine/OpenViking/refs/heads/main/README.md"
+              - generic [ref=e365]: )
+              - generic [ref=e366]: root_uri = add_result['root_uri']
+              - generic [ref=e367]: "# Explore the resource tree structure"
+              - generic [ref=e368]: ls_result = client.ls(root_uri)
+              - generic [ref=e369]: "print(f\"Directory structure:\\n{ls_result}\\n\")"
+              - generic [ref=e370]: "# Use glob to find markdown files"
+              - generic [ref=e371]: glob_result = client.glob(pattern="**/*.md", uri=root_uri)
+              - generic [ref=e372]: "if glob_result['matches']:"
+              - generic [ref=e373]: content = client.read(glob_result['matches'][0])
+              - generic [ref=e374]: "print(f\"Content preview: {content[:200]}...\\n\")"
+              - generic [ref=e375]: "# Wait for semantic processing to complete"
+              - generic [ref=e376]: print("Wait for semantic processing...")
+              - generic [ref=e377]: client.wait_processed()
+              - generic [ref=e378]: "# Get abstract and overview of the resource"
+              - generic [ref=e379]: abstract = client.abstract(root_uri)
+              - generic [ref=e380]: overview = client.overview(root_uri)
+              - generic [ref=e381]: "print(f\"Abstract:\\n{abstract}\\n\\nOverview:\\n{overview}\\n\")"
+              - generic [ref=e382]: "# Perform semantic search"
+              - generic [ref=e383]: results = client.find("what is openviking", target_uri=root_uri)
+              - generic [ref=e384]: print("Search results:")
+              - generic [ref=e385]: "for r in results.resources:"
+              - generic [ref=e386]: "print(f\" {r.uri} (score: {r.score:.4f})\")"
+              - generic [ref=e387]: "# Close the client"
+              - generic [ref=e388]: client.close()
+              - generic [ref=e389]: "except Exception as e:"
+              - generic [ref=e390]: "print(f\"Error: {e}\")"
+            - heading "Run the Script" [level=3] [ref=e391]
+            - code [ref=e393]:
+              - generic [ref=e394]: python example.py
+            - heading "Expected Output" [level=3] [ref=e395]
+            - code [ref=e397]:
+              - generic [ref=e398]: "Directory structure:"
+              - generic [ref=e399]: ...
+              - generic [ref=e400]: "Content preview: ..."
+              - generic [ref=e401]: Wait for semantic processing...
+              - generic [ref=e402]: "Abstract:"
+              - generic [ref=e403]: ...
+              - generic [ref=e404]: "Overview:"
+              - generic [ref=e405]: ...
+              - generic [ref=e406]: "Search results:"
+              - generic [ref=e407]: "viking://resources/... (score: 0.8523)"
+              - generic [ref=e408]: ...
+            - paragraph [ref=e409]: Congratulations! You have successfully run OpenViking.
+            - heading "Next Steps" [level=2] [ref=e410]
+            - list [ref=e411]:
+              - listitem [ref=e412]:
+                - link "Configuration Guide" [ref=e413] [cursor=pointer]:
+                  - /url: ../configuration/configuration.md
+                - text: "- Detailed configuration options"
+              - listitem [ref=e414]:
+                - link "Client API" [ref=e415] [cursor=pointer]:
+                  - /url: ../api/01-client.md
+                - text: "- Client usage guide"
+              - listitem [ref=e416]:
+                - link "Resource Management" [ref=e417] [cursor=pointer]:
+                  - /url: ../api/02-resources.md
+                - text: "- Resource management API"
+      - complementary [ref=e85]:
+        - heading "Directory Navigation" [level=3] [ref=e86]
+        - navigation [ref=e273]:
+          - button "Quick Start" [ref=e418] [cursor=pointer]
+          - button "Prerequisites" [ref=e419] [cursor=pointer]
+          - button "Installation" [ref=e420] [cursor=pointer]
+          - button "Model Preparation" [ref=e421] [cursor=pointer]
+          - button "Configuration" [ref=e422] [cursor=pointer]
+          - button "Configuration File Template" [ref=e423] [cursor=pointer]
+          - button "Configuration Examples" [ref=e424] [cursor=pointer]
+          - button "Set Environment Variable" [ref=e425] [cursor=pointer]
+          - button "Run Your First Example" [ref=e426] [cursor=pointer]
+          - button "Create Python Script" [ref=e427] [cursor=pointer]
+          - button "Run the Script" [ref=e428] [cursor=pointer]
+          - button "Expected Output" [ref=e429] [cursor=pointer]
+          - button "Next Steps" [ref=e282] [cursor=pointer]

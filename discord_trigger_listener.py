@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Discord Trigger Listener — polls #trigger-agents-ado-work for RUN: commands and launches workflows.
+"""Discord Trigger Listener — polls #trigger-agents-ado-work and #trigger-agents-general for commands.
 
 Posts live progress and a structured completion summary to the Discord thread it creates
 for each run. Runs indefinitely until killed (Ctrl-C or SIGTERM).
@@ -7,20 +7,26 @@ for each run. Runs indefinitely until killed (Ctrl-C or SIGTERM).
 Usage:
     DISCORD_BOT_TOKEN=<token> python3 discord_trigger_listener.py \\
         [--repo /abs/path/to/repo] \\
-        [--backend copilot|claude] \\
+        [--backend github-copilot|claude-code] \\
         [--runner-script /abs/path/to/run_headless.py]
 
-Trigger format (post in #trigger-agents-ado-work):
-    RUN: WI-4461550 claude
-    RUN: WI-4461550 copilot
-    RUN: WI-4461550 claude /absolute/path/to/repo
+ADO trigger format (post in #trigger-agents-ado-work):
+    RUN: WI-4461550 claude-code
+    RUN: WI-4461550 github-copilot
+    RUN: WI-4461550 claude-code /absolute/path/to/repo
 
-    NOTE: backend (claude|copilot) is required in every trigger message.
+    NOTE: backend (claude-code|github-copilot) is required in every trigger message.
+
+General trigger format (post in #trigger-agents-general):
+    RUN: --backend github-copilot --prompt "your prompt" --repo mcs-products-mono-ui [--model <id>] [--agent <file>]
+    HELP:          — show help message
+    CLONE: <repo-name> git@github.com:org/repo.git  — provide SSH URL when repo not found
 
 Environment variables:
     DISCORD_BOT_TOKEN        Required
-    DISCORD_GUILD_NAME       Discord server name      (default: Agent-Escalations)
-    DISCORD_TRIGGER_CHANNEL  Channel to watch         (default: trigger-agents-ado-work)
+    DISCORD_GUILD_NAME       Discord server name      (default: arigato-mr-roboto)
+    DISCORD_TRIGGER_CHANNEL  ADO channel to watch     (default: trigger-agents-ado-work)
+    DISCORD_GENERAL_CHANNEL  General channel to watch (default: trigger-agents-general)
     DISCORD_POLL_SECONDS     Poll interval in seconds (default: 10)
 """
 
@@ -36,6 +42,7 @@ import sys
 import tempfile
 import threading
 import time
+import random
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -47,7 +54,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
-DEFAULT_GUILD_NAME = "Agent-Escalations"
+DEFAULT_GUILD_NAME = "arigato-mr-roboto"
 DEFAULT_TRIGGER_CHANNEL = "trigger-agents-ado-work"
 DEFAULT_POLL_SECONDS = 10
 
@@ -64,7 +71,44 @@ HEARTBEAT_INTERVAL_SECONDS = 180
 
 RUN_PREFIX = "RUN:"
 REPO_PREFIX = "REPO:"
-VALID_BACKENDS = ("claude", "copilot")
+CLONE_PREFIX = "CLONE:"
+HELP_PREFIX = "HELP:"
+VALID_BACKENDS = ("claude-code", "github-copilot")
+
+DEFAULT_GENERAL_CHANNEL = "trigger-agents-general"
+
+GENERAL_HELP_MESSAGE = """\
+**🤖 General Agent Trigger — command reference**
+
+**Start a run:**
+```
+RUN: --backend <backend> --prompt "your prompt" --repo <repo-name> [--model <id>] [--agent <file.agent.md>]
+```
+
+**Required args:**
+  `--backend`   AI backend: `claude-code` or `github-copilot`
+  `--prompt`    The prompt text (wrap in quotes if it contains spaces)
+  `--repo`      Repository name (e.g. `mcs-products-mono-ui`) — searched under `~/Code`
+
+**Optional args:**
+  `--model`     Model identifier (see below)
+  `--agent`     Path to an `.agent.md` file
+
+**Available models:**
+  `github-copilot` → gpt-5.4 | gpt-5.3-codex | gpt-5.2 | gpt-5.1 | gpt-5.4-mini | gpt-5-mini | gpt-4.1 | claude-sonnet-4.6 | claude-opus-4.6 | claude-haiku-4.5
+  `claude-code`    → claude-opus-4-5 | claude-sonnet-4-5 | claude-haiku-4-5
+
+**Examples:**
+```
+RUN: --backend github-copilot --model claude-sonnet-4.6 --prompt "Fix the failing tests" --repo mcs-products-mono-ui
+RUN: --backend claude-code --model claude-sonnet-4-5 --prompt "Add unit tests" --repo my-repo --agent spike.agent.md
+```
+
+If the repo is not found in `~/Code`, the bot will ask for an SSH clone URL.
+Reply with: `CLONE: <repo-name> git@github.com:org/repo.git`
+
+Type `HELP:` at any time to see this message again.\
+"""
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -115,6 +159,9 @@ class DiscordAPIError(RuntimeError):
     pass
 
 
+_RETRY_DELAYS = [1, 2, 4, 8]  # seconds between attempts (exponential backoff)
+
+
 def _discord_request(
     method: str,
     endpoint: str,
@@ -128,20 +175,44 @@ def _discord_request(
         "User-Agent": "DiscordTriggerListener/1.0",
     }
     data = json.dumps(payload).encode("utf-8") if payload is not None else None
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            body = resp.read().decode("utf-8")
-            return json.loads(body) if body.strip() else {}
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise DiscordAPIError(
-            f"Discord API {method} {endpoint} → HTTP {exc.code}: {body[:400]}"
-        ) from exc
-    except urllib.error.URLError as exc:
-        raise DiscordAPIError(
-            f"Discord API {method} {endpoint} → network error: {exc.reason}"
-        ) from exc
+
+    last_exc: Exception | None = None
+    for attempt, delay in enumerate([0] + _RETRY_DELAYS):
+        if delay:
+            time.sleep(delay + random.uniform(-0.5, 0.5))
+        req = urllib.request.Request(url, data=data, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                body = resp.read().decode("utf-8")
+                return json.loads(body) if body.strip() else {}
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            if exc.code == 429:
+                try:
+                    retry_after = float(json.loads(body).get("retry_after", delay or 1))
+                except (ValueError, KeyError):
+                    retry_after = delay or 1
+                time.sleep(retry_after + 0.1)
+                last_exc = DiscordAPIError(
+                    f"Discord API {method} {endpoint} → HTTP 429 (rate limited, retry_after={retry_after:.1f}s)"
+                )
+                continue
+            if exc.code >= 500:
+                last_exc = DiscordAPIError(
+                    f"Discord API {method} {endpoint} → HTTP {exc.code}: {body[:400]}"
+                )
+                continue
+            # 4xx (non-429) — not retryable
+            raise DiscordAPIError(
+                f"Discord API {method} {endpoint} → HTTP {exc.code}: {body[:400]}"
+            ) from exc
+        except urllib.error.URLError as exc:
+            last_exc = DiscordAPIError(
+                f"Discord API {method} {endpoint} → network error: {exc.reason}"
+            )
+            continue
+
+    raise last_exc  # type: ignore[misc]
 
 
 def get_guild_id(token: str, guild_name: str) -> str:
@@ -257,6 +328,77 @@ def parse_repo_reply(content: str) -> tuple[str, str] | None:
     return change_id, repo_path.strip()
 
 
+def _tokenise_args(s: str) -> list[str]:
+    """Split ``--key value`` string into tokens, respecting double-quoted values."""
+    tokens: list[str] = []
+    i = 0
+    while i < len(s):
+        if s[i].isspace():
+            i += 1
+            continue
+        if s[i] == '"':
+            end = s.find('"', i + 1)
+            if end == -1:
+                tokens.append(s[i + 1:])
+                break
+            tokens.append(s[i + 1:end])
+            i = end + 1
+        else:
+            end = i
+            while end < len(s) and not s[end].isspace():
+                end += 1
+            tokens.append(s[i:end])
+            i = end
+    return tokens
+
+
+def parse_clone_reply(content: str) -> tuple[str, str] | None:
+    """Parse a ``CLONE: <repo-name> <ssh-url>`` reply.
+
+    Returns ``(repo_name, ssh_url)`` or None if malformed.
+    """
+    stripped = content.strip()
+    if not stripped.upper().startswith(CLONE_PREFIX.upper()):
+        return None
+    body = stripped[len(CLONE_PREFIX):].strip()
+    parts = body.split(None, 1)
+    if len(parts) != 2:
+        return None
+    return parts[0].strip(), parts[1].strip()
+
+
+def parse_general_trigger(content: str) -> dict | None:
+    """Parse a general RUN: message with ``--flag value`` style args.
+
+    Required: ``--backend``, ``--prompt``, ``--repo``
+    Optional: ``--model``, ``--agent``
+
+    Returns a dict or None if required fields are missing / not a trigger.
+    """
+    stripped = content.strip()
+    if not stripped.upper().startswith(RUN_PREFIX.upper()):
+        return None
+    body = stripped[len(RUN_PREFIX):].strip()
+    if not body or not body.startswith("-"):
+        return None
+
+    tokens = _tokenise_args(body)
+    result: dict = {"backend": None, "prompt": None, "repo": None, "model": None, "agent": None}
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok.startswith("--") and i + 1 < len(tokens):
+            key = tok[2:]
+            result[key] = tokens[i + 1]
+            i += 2
+        else:
+            i += 1
+
+    if not result.get("backend") or not result.get("prompt") or not result.get("repo"):
+        return None
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Workflow runner (subprocess)
 # ---------------------------------------------------------------------------
@@ -270,6 +412,11 @@ def _runner_script_path() -> Path:
     if _RUNNER_SCRIPT_OVERRIDE is not None:
         return _RUNNER_SCRIPT_OVERRIDE
     return Path(__file__).resolve().parent.parent / "agent-runner" / "run_headless.py"
+
+
+def _general_runner_script_path() -> Path:
+    """Resolve run_general.py relative to this script."""
+    return Path(__file__).resolve().parent / "agent-runner" / "run_general.py"
 
 
 def run_workflow_subprocess(
@@ -454,6 +601,38 @@ class PendingRun:
         self.triggered_by = triggered_by
 
 
+class PendingClone:
+    """A general trigger waiting for an SSH clone URL from the user."""
+    def __init__(
+        self,
+        repo_name: str,
+        backend: str,
+        prompt: str,
+        model: str | None,
+        agent: str | None,
+        triggered_by: str,
+    ) -> None:
+        self.repo_name = repo_name
+        self.backend = backend
+        self.prompt = prompt
+        self.model = model
+        self.agent = agent
+        self.triggered_by = triggered_by
+
+
+def _resolve_repo(name_or_path: str) -> Path | None:
+    """Return a resolved Path for a repo name or absolute path.
+
+    Accepts a bare name (searched under ~/Code) or an absolute path.
+    Returns None if the directory cannot be found.
+    """
+    p = Path(name_or_path)
+    if p.is_absolute():
+        return p.resolve() if p.is_dir() else None
+    candidate = Path.home() / "Code" / name_or_path
+    return candidate.resolve() if candidate.is_dir() else None
+
+
 # ---------------------------------------------------------------------------
 # Structured event state (populated by ##EVENT## lines from run.py)
 # ---------------------------------------------------------------------------
@@ -619,20 +798,23 @@ def run_listener(
     trigger_channel_name: str,
     poll_seconds: int,
     default_repo: str | None,
+    guild_id: str | None = None,
 ) -> None:
     _log("Resolving Discord guild and channel…")
-    guild_id = get_guild_id(token, guild_name)
+    if guild_id is None:
+        guild_id = get_guild_id(token, guild_name)
     _log(f"Guild ID: {guild_id}")
     trigger_channel_id = get_channel_id(token, guild_id, trigger_channel_name)
     _log(f"#{trigger_channel_name} channel ID: {trigger_channel_id}")
     _log(
         f"Polling every {poll_seconds}s. "
-        f"Post 'RUN: WI-XXXX claude|copilot [/repo/path]' in #{trigger_channel_name} to start a workflow."
+        f"Post 'RUN: WI-XXXX claude-code|github-copilot [repo-name]' in #{trigger_channel_name} to start a workflow."
     )
 
     last_seen_id: str | None = None
     active_runs: dict[str, ActiveRun] = {}    # change_id → ActiveRun
     pending_runs: dict[str, PendingRun] = {}  # change_id → PendingRun (awaiting repo path)
+    consecutive_failures = 0
 
     # Seed last_seen_id with the most recent message so we don't re-process history
     seed_msgs = get_channel_messages(token, trigger_channel_id, after_id=None)
@@ -646,10 +828,18 @@ def run_listener(
         try:
             messages = get_channel_messages(token, trigger_channel_id, after_id=last_seen_id)
         except DiscordAPIError as exc:
-            _log(f"Warning: failed to fetch messages: {exc}")
+            consecutive_failures += 1
+            extra_sleep = min(60 * consecutive_failures, 300)
+            _log(
+                f"Warning: failed to fetch messages (failure #{consecutive_failures},"
+                f" backing off {extra_sleep}s): {exc}"
+            )
+            if extra_sleep > poll_seconds:
+                time.sleep(extra_sleep - poll_seconds)
             continue
 
         # Process oldest-first
+        consecutive_failures = 0
         for msg in sorted(messages, key=lambda m: str(m.get("id", ""))):
             msg_id = str(msg.get("id", ""))
             author = msg.get("author", {})
@@ -756,7 +946,7 @@ def run_listener(
             if backend not in VALID_BACKENDS:
                 error_msg = (
                     f"⚠️ **Invalid or missing backend** in trigger from {username}.\n"
-                    f"**Usage:** `RUN: {change_id} claude` or `RUN: {change_id} copilot`\n"
+                    f"**Usage:** `RUN: {change_id} claude-code` or `RUN: {change_id} github-copilot`\n"
                     f"Backend must be one of: `{'`, `'.join(VALID_BACKENDS)}`"
                 )
                 _log(f"Invalid trigger from {username}: missing/invalid backend '{backend}' for {change_id}")
@@ -947,6 +1137,255 @@ def _start_run_thread(
 # ---------------------------------------------------------------------------
 
 
+def run_general_listener(
+    token: str,
+    guild_name: str,
+    channel_name: str,
+    poll_seconds: int,
+    guild_id: str | None = None,
+) -> None:
+    """Poll #trigger-agents-general and handle HELP: and RUN: --flag-style messages."""
+    try:
+        _run_general_listener(token, guild_name, channel_name, poll_seconds, guild_id=guild_id)
+    except Exception as exc:
+        _log(f"[general] Fatal error in general poller: {exc}")
+
+
+def _run_general_listener(
+    token: str,
+    guild_name: str,
+    channel_name: str,
+    poll_seconds: int,
+    guild_id: str | None = None,
+) -> None:
+    _log(f"[general] Resolving guild and #{channel_name}…")
+    if guild_id is None:
+        guild_id = get_guild_id(token, guild_name)
+    channel_id = get_channel_id(token, guild_id, channel_name)
+    _log(f"[general] #{channel_name} channel ID: {channel_id}  (polling every {poll_seconds}s)")
+
+    seed = get_channel_messages(token, channel_id, after_id=None)
+    last_seen_id: str | None = None
+    if seed:
+        last_seen_id = str(max(seed, key=lambda m: m.get("id", "0"))["id"])
+        _log(f"[general] Seeded last_seen_id={last_seen_id}")
+
+    runner = _general_runner_script_path()
+    pending_clones: dict[str, PendingClone] = {}  # repo_name → PendingClone
+    consecutive_failures = 0
+
+    while True:
+        time.sleep(poll_seconds)
+        try:
+            messages = get_channel_messages(token, channel_id, after_id=last_seen_id)
+        except DiscordAPIError as exc:
+            consecutive_failures += 1
+            extra_sleep = min(60 * consecutive_failures, 300)
+            _log(
+                f"[general] Warning: failed to fetch messages (failure #{consecutive_failures},"
+                f" backing off {extra_sleep}s): {exc}"
+            )
+            if extra_sleep > poll_seconds:
+                time.sleep(extra_sleep - poll_seconds)
+            continue
+
+        consecutive_failures = 0
+        for msg in sorted(messages, key=lambda m: str(m.get("id", ""))):
+            msg_id = str(msg.get("id", ""))
+            author = msg.get("author", {})
+            if author.get("bot"):
+                last_seen_id = msg_id
+                continue
+            content = str(msg.get("content", ""))
+            username = str(author.get("global_name") or author.get("username", "unknown"))
+            last_seen_id = msg_id
+
+            upper = content.strip().upper()
+
+            # HELP: (or bare "help") — reply with the help message
+            if upper == "HELP" or upper.startswith(HELP_PREFIX.upper()):
+                try:
+                    post_message(token, channel_id, GENERAL_HELP_MESSAGE)
+                except DiscordAPIError as exc:
+                    _log(f"[general] Could not post help: {exc}")
+                continue
+
+            # CLONE: reply — user provided SSH URL for a repo we couldn't find
+            if upper.startswith(CLONE_PREFIX.upper()):
+                parsed_clone = parse_clone_reply(content)
+                if not parsed_clone:
+                    try:
+                        post_message(
+                            token, channel_id,
+                            "⚠️ **Invalid CLONE: format.**\n"
+                            "Use: `CLONE: <repo-name> git@github.com:org/repo.git`",
+                        )
+                    except DiscordAPIError:
+                        pass
+                    continue
+
+                repo_name, ssh_url = parsed_clone
+                if repo_name not in pending_clones:
+                    try:
+                        post_message(
+                            token, channel_id,
+                            f"⚠️ No pending run found for repo `{repo_name}`. "
+                            "Send a `RUN:` trigger first.",
+                        )
+                    except DiscordAPIError:
+                        pass
+                    continue
+
+                pending = pending_clones.pop(repo_name)
+                clone_dest = Path.home() / "Code" / repo_name
+                _log(f"[general] Cloning {ssh_url} → {clone_dest}")
+                try:
+                    post_message(token, channel_id, f"📦 Cloning `{repo_name}`…")
+                except DiscordAPIError:
+                    pass
+
+                clone_result = subprocess.run(
+                    ["git", "clone", ssh_url, str(clone_dest)],
+                    capture_output=True, text=True
+                )
+                if clone_result.returncode != 0:
+                    _log(f"[general] Clone failed: {clone_result.stderr}")
+                    try:
+                        post_message(
+                            token, channel_id,
+                            f"❌ Clone failed:\n```\n{clone_result.stderr[:800]}\n```",
+                        )
+                    except DiscordAPIError:
+                        pass
+                    pending_clones[repo_name] = pending  # put back for retry
+                    continue
+
+                _log(f"[general] Clone succeeded: {clone_dest}")
+                repo_path = str(clone_dest.resolve())
+
+                def _run_cloned(
+                    _backend=pending.backend, _prompt=pending.prompt,
+                    _repo=repo_path, _model=pending.model, _agent=pending.agent,
+                    _user=pending.triggered_by
+                ) -> None:
+                    _launch_general_run(
+                        token, channel_id, runner,
+                        _backend, _prompt, _repo, _model, _agent, _user
+                    )
+
+                threading.Thread(target=_run_cloned, daemon=True).start()
+                continue
+
+            parsed = parse_general_trigger(content)
+            if not parsed:
+                continue
+
+            backend = parsed["backend"]
+            prompt = parsed["prompt"]
+            repo = parsed["repo"]
+            model = parsed.get("model")
+            agent = parsed.get("agent")
+
+            if backend not in VALID_BACKENDS:
+                try:
+                    post_message(
+                        token, channel_id,
+                        f"⚠️ Unknown backend `{backend}`. "
+                        "Use `claude-code` or `github-copilot`.",
+                    )
+                except DiscordAPIError:
+                    pass
+                continue
+
+            # Resolve repo name → path
+            repo_path_obj = _resolve_repo(repo)
+            if repo_path_obj is None:
+                _log(f"[general] Repo '{repo}' not found in ~/Code — asking {username} for clone URL")
+                pending_clones[repo] = PendingClone(
+                    repo_name=repo, backend=backend, prompt=prompt,
+                    model=model, agent=agent, triggered_by=username,
+                )
+                try:
+                    post_message(
+                        token, channel_id,
+                        f"❓ Repo `{repo}` not found in `~/Code`.\n"
+                        f"Reply with the SSH clone URL:\n"
+                        f"`CLONE: {repo} git@github.com:org/{repo}.git`",
+                    )
+                except DiscordAPIError:
+                    pass
+                continue
+
+            repo_path = str(repo_path_obj)
+            _log(f"[general] Trigger from {username}: backend={backend} repo={repo_path}")
+
+            def _run_general(
+                _backend=backend, _prompt=prompt, _repo=repo_path,
+                _model=model, _agent=agent, _user=username
+            ) -> None:
+                _launch_general_run(
+                    token, channel_id, runner,
+                    _backend, _prompt, _repo, _model, _agent, _user
+                )
+
+            threading.Thread(target=_run_general, daemon=True).start()
+
+
+def _launch_general_run(
+    token: str,
+    channel_id: str,
+    runner: Path,
+    backend: str,
+    prompt: str,
+    repo_path: str,
+    model: str | None,
+    agent: str | None,
+    username: str,
+) -> None:
+    """Build and execute a general run subprocess, streaming output to Discord."""
+    cmd = [sys.executable, str(runner), "--backend", backend, "--prompt", prompt, "--repo", repo_path]
+    if model:
+        cmd += ["--model", model]
+    if agent:
+        cmd += ["--agent", agent]
+
+    try:
+        ack = post_message(
+            token, channel_id,
+            f"🤖 **General run triggered by {username}**\n"
+            f"**Backend:** `{backend}`" + (f"  **Model:** `{model}`" if model else "") + "\n"
+            f"**Repo:** `{repo_path}`\n"
+            f"**Prompt:** {prompt[:200]}\n"
+            "Starting… output will stream below.",
+        )
+        thread = create_thread(token, channel_id, str(ack["id"]), "general-run")
+        thread_id = str(thread["id"])
+    except DiscordAPIError as exc:
+        _log(f"[general] Could not create thread: {exc}")
+        return
+
+    import queue as _queue
+    line_q: _queue.Queue[str | None] = _queue.Queue()
+
+    def _sub() -> None:
+        try:
+            proc = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+            )
+            assert proc.stdout
+            for line in proc.stdout:
+                line_q.put(line.rstrip())
+            proc.wait()
+        finally:
+            line_q.put(None)
+
+    sub = threading.Thread(target=_sub, daemon=True)
+    sub.start()
+    stream_output_to_discord(token, thread_id, line_q)
+    sub.join()
+
+
+
 def main(argv: list[str] | None = None) -> int:
     global _RUNNER_SCRIPT_OVERRIDE
 
@@ -965,7 +1404,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--backend",
-        choices=["copilot", "claude"],
+        choices=["github-copilot", "claude-code"],
         help="Default AI backend (overridden per-message by the trigger format).",
     )
     parser.add_argument(
@@ -996,6 +1435,33 @@ def main(argv: list[str] | None = None) -> int:
     _log(f"Channel:       #{trigger_channel}")
     _log(f"Poll interval: {poll_seconds}s")
 
+    # Resolve guild ID once — avoids a race / rate-limit when both pollers start simultaneously
+    _log("Resolving guild ID…")
+    try:
+        guild_id = get_guild_id(token, guild_name)
+    except DiscordAPIError as exc:
+        _log(f"Fatal Discord error resolving guild: {exc}")
+        pid_file.unlink(missing_ok=True)
+        return 1
+    _log(f"Guild ID: {guild_id}")
+
+    # Start general-purpose channel poller in a background thread
+    general_channel = os.environ.get("DISCORD_GENERAL_CHANNEL", DEFAULT_GENERAL_CHANNEL)
+    _log(f"General channel: #{general_channel}")
+    general_thread = threading.Thread(
+        target=run_general_listener,
+        kwargs=dict(
+            token=token,
+            guild_name=guild_name,
+            channel_name=general_channel,
+            poll_seconds=poll_seconds,
+            guild_id=guild_id,
+        ),
+        daemon=True,
+        name="general-poller",
+    )
+    general_thread.start()
+
     try:
         run_listener(
             token=token,
@@ -1003,6 +1469,7 @@ def main(argv: list[str] | None = None) -> int:
             trigger_channel_name=trigger_channel,
             poll_seconds=poll_seconds,
             default_repo=default_repo,
+            guild_id=guild_id,
         )
     except KeyboardInterrupt:
         _log("Shutting down.")

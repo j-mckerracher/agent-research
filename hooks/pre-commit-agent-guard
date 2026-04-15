@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# pre-commit-agent-guard
+# Blocks commits that directly modify agent files in this repository.
+# Agent files are managed centrally in the agent-development repo.
+# To update agents: edit the golden copies there and run sync-agents.sh.
+
+AGENT_DIRS=(".github/agents" ".claude/agents")
+
+for agent_dir in "${AGENT_DIRS[@]}"; do
+  if git diff --cached --name-only | grep -q "^${agent_dir}/"; then
+    echo ""
+    echo "  BLOCKED: Agent files cannot be committed directly in this repository."
+    echo "  All agent changes must originate from the agent-development golden-copy repo."
+    echo ""
+    echo "  Blocked files:"
+    git diff --cached --name-only | grep "^${agent_dir}/" | sed 's/^/    /'
+    echo ""
+    echo "  To update agents:"
+    echo "    1. Edit the golden copies in ~/Code/Mine/agent-development/agents/"
+    echo "    2. Run: ./sync-agents.sh  (from agent-development)"
+    echo "    3. The sync script will create a PR in this repo automatically."
+    echo ""
+    exit 1
+  fi
+done

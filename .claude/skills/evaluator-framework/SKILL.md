@@ -4,6 +4,10 @@ description: |
   Evaluator gate and rubric framework for AI agent quality checks. Use this skill when building or running evaluator agents that assess artifacts against programmatic gates and subjective rubrics.
 ---
 
+## Dynamic context
+
+No default `!` pre-execution injection is recommended for this skill. It is a rubric and gating reference, so only task-specific evaluator runs need live context.
+
 # Evaluator Gate & Rubric Framework
 
 Standard evaluation workflow for assessing artifacts in multi-agent workflows. All evaluator agents follow this framework.

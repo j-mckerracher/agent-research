@@ -1,0 +1,73 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Doc" [ref=e8] [cursor=pointer]:
+            - /url: /docs
+            - button "Doc" [ref=e9]
+          - link "Blog" [ref=e10] [cursor=pointer]:
+            - /url: /blog
+            - button "Blog" [ref=e11]
+        - link "OpenViking Logo OpenViking" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img "OpenViking Logo" [ref=e14]
+          - generic [ref=e16]: OpenViking
+        - link "GitHub" [ref=e18] [cursor=pointer]:
+          - /url: https://github.com/volcengine/OpenViking
+          - button "GitHub" [ref=e19]
+    - main [ref=e20]:
+      - article [ref=e21]:
+        - link "Back to Blog" [ref=e23] [cursor=pointer]:
+          - /url: /blog
+          - button "Back to Blog" [ref=e24]:
+            - img
+            - text: Back to Blog
+        - generic [ref=e25]:
+          - generic [ref=e26]: Announcement
+          - 'heading "OpenViking: The Context Database for AI Agents" [level=1] [ref=e27]'
+          - generic [ref=e29]:
+            - img [ref=e30]
+            - text: January 29, 2026
+        - 'img "OpenViking: The Context Database for AI Agents" [ref=e33]'
+        - button "Share" [ref=e43] [cursor=pointer]:
+          - img
+          - text: Share
+    - contentinfo [ref=e44]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - img "OpenViking Logo" [ref=e50]
+              - generic [ref=e51]: OpenViking
+            - paragraph [ref=e52]:
+              - paragraph [ref=e53]: A Context Database for AI Agents.
+              - paragraph [ref=e54]: Memory, Resource, Skill. Everything is a File.
+          - generic [ref=e55]:
+            - heading "Open Source" [level=4] [ref=e56]
+            - list [ref=e57]:
+              - listitem [ref=e58]:
+                - link "MineContext" [ref=e59] [cursor=pointer]:
+                  - /url: https://github.com/volcengine/MineContext
+              - listitem [ref=e60]:
+                - link "OpenViking" [ref=e61] [cursor=pointer]:
+                  - /url: https://github.com/volcengine/OpenViking
+          - generic [ref=e62]:
+            - heading "Social" [level=4] [ref=e63]
+            - generic [ref=e64]:
+              - link "github" [ref=e65] [cursor=pointer]:
+                - /url: https://github.com/volcengine/OpenViking
+                - img "github" [ref=e66]
+              - link "飞书" [ref=e67] [cursor=pointer]:
+                - /url: https://applink.larkoffice.com/client/chat/chatter/add_by_link?link_token=dd9l9590-7e6e-49f5-bf41-18aef1ma06v3
+                - img "飞书" [ref=e68]
+              - link "twitter" [ref=e69] [cursor=pointer]:
+                - /url: https://x.com/openvikingai
+                - img "twitter" [ref=e70]
+              - link "discord" [ref=e71] [cursor=pointer]:
+                - /url: https://discord.gg/eHvx8E9XF3
+                - img "discord" [ref=e72]
+        - paragraph [ref=e74]: © 2026 Viking. All rights reserved.

@@ -1,0 +1,417 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Doc" [ref=e8] [cursor=pointer]:
+            - /url: /docs
+            - button "Doc" [ref=e9]
+          - link "Blog" [ref=e10] [cursor=pointer]:
+            - /url: /blog
+            - button "Blog" [ref=e11]
+        - link "OpenViking Logo OpenViking" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img "OpenViking Logo" [ref=e14]
+          - generic [ref=e16]: OpenViking
+        - link "GitHub" [ref=e18] [cursor=pointer]:
+          - /url: https://github.com/volcengine/OpenViking
+          - button "GitHub" [ref=e19]
+    - generic [ref=e21]:
+      - complementary [ref=e22]:
+        - heading "Documentation" [level=2] [ref=e23]
+        - navigation [ref=e24]:
+          - button "Getting Started" [ref=e26] [cursor=pointer]:
+            - img [ref=e27]
+            - img [ref=e29]
+            - generic [ref=e32]: Getting Started
+          - generic [ref=e36]:
+            - button "API" [ref=e37] [cursor=pointer]:
+              - img [ref=e38]
+              - img [ref=e40]
+              - generic [ref=e44]: API
+            - generic [ref=e430]:
+              - button "Client" [active] [ref=e431] [cursor=pointer]
+              - button "Resources" [ref=e432] [cursor=pointer]
+              - button "Skills" [ref=e433] [cursor=pointer]
+              - button "Sessions" [ref=e434] [cursor=pointer]
+              - button "Retrieval" [ref=e435] [cursor=pointer]
+              - button "FileSystem" [ref=e436] [cursor=pointer]
+          - button "Concepts" [ref=e46] [cursor=pointer]:
+            - img [ref=e47]
+            - img [ref=e49]
+            - generic [ref=e51]: Concepts
+          - button "Configuration" [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+            - img [ref=e56]
+            - generic [ref=e59]: Configuration
+          - button "FAQ" [ref=e61] [cursor=pointer]:
+            - img [ref=e62]
+            - img [ref=e64]
+            - generic [ref=e67]: FAQ
+          - button "About" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - img [ref=e72]
+            - generic [ref=e74]: About
+      - main [ref=e75]:
+        - article [ref=e437]:
+          - generic [ref=e439]:
+            - heading "Client" [level=1] [ref=e440]
+            - paragraph [ref=e441]: The OpenViking client is the main entry point for all operations.
+            - heading "Deployment Modes" [level=2] [ref=e442]
+            - table [ref=e443]:
+              - rowgroup [ref=e444]:
+                - row "Mode Description Use Case" [ref=e445]:
+                  - columnheader "Mode" [ref=e446]
+                  - columnheader "Description" [ref=e447]
+                  - columnheader "Use Case" [ref=e448]
+              - rowgroup [ref=e449]:
+                - row "Embedded Local storage, singleton instance Development, small applications" [ref=e450]:
+                  - cell "Embedded" [ref=e451]:
+                    - strong [ref=e452]: Embedded
+                  - cell "Local storage, singleton instance" [ref=e453]
+                  - cell "Development, small applications" [ref=e454]
+                - row "Service Remote storage services, multiple instances Production, multi-process" [ref=e455]:
+                  - cell "Service" [ref=e456]:
+                    - strong [ref=e457]: Service
+                  - cell "Remote storage services, multiple instances" [ref=e458]
+                  - cell "Production, multi-process" [ref=e459]
+            - heading "API Reference" [level=2] [ref=e460]
+            - heading "OpenViking()" [level=3] [ref=e461]
+            - paragraph [ref=e462]: Create an OpenViking client instance.
+            - paragraph [ref=e463]:
+              - strong [ref=e464]: Signature
+            - code [ref=e466]:
+              - generic [ref=e467]: def __init__(
+              - generic [ref=e468]: self,
+              - generic [ref=e469]: "path: Optional[str] = None,"
+              - generic [ref=e470]: "vectordb_url: Optional[str] = None,"
+              - generic [ref=e471]: "agfs_url: Optional[str] = None,"
+              - generic [ref=e472]: "user: Optional[str] = None,"
+              - generic [ref=e473]: "config: Optional[OpenVikingConfig] = None,"
+              - generic [ref=e474]: "**kwargs,"
+              - generic [ref=e475]: )
+            - paragraph [ref=e476]:
+              - strong [ref=e477]: Parameters
+            - table [ref=e478]:
+              - rowgroup [ref=e479]:
+                - row "Parameter Type Required Default Description" [ref=e480]:
+                  - columnheader "Parameter" [ref=e481]
+                  - columnheader "Type" [ref=e482]
+                  - columnheader "Required" [ref=e483]
+                  - columnheader "Default" [ref=e484]
+                  - columnheader "Description" [ref=e485]
+              - rowgroup [ref=e486]:
+                - row "path str No* None Local storage path (embedded mode)" [ref=e487]:
+                  - cell "path" [ref=e488]
+                  - cell "str" [ref=e489]
+                  - cell "No*" [ref=e490]
+                  - cell "None" [ref=e491]
+                  - cell "Local storage path (embedded mode)" [ref=e492]
+                - row "vectordb_url str No* None Remote VectorDB service URL (service mode)" [ref=e493]:
+                  - cell "vectordb_url" [ref=e494]
+                  - cell "str" [ref=e495]
+                  - cell "No*" [ref=e496]
+                  - cell "None" [ref=e497]
+                  - cell "Remote VectorDB service URL (service mode)" [ref=e498]
+                - row "agfs_url str No* None Remote AGFS service URL (service mode)" [ref=e499]:
+                  - cell "agfs_url" [ref=e500]
+                  - cell "str" [ref=e501]
+                  - cell "No*" [ref=e502]
+                  - cell "None" [ref=e503]
+                  - cell "Remote AGFS service URL (service mode)" [ref=e504]
+                - row "user str No None Username for session management" [ref=e505]:
+                  - cell "user" [ref=e506]
+                  - cell "str" [ref=e507]
+                  - cell "No" [ref=e508]
+                  - cell "None" [ref=e509]
+                  - cell "Username for session management" [ref=e510]
+                - row "config OpenVikingConfig No None Advanced configuration object" [ref=e511]:
+                  - cell "config" [ref=e512]
+                  - cell "OpenVikingConfig" [ref=e513]
+                  - cell "No" [ref=e514]
+                  - cell "None" [ref=e515]
+                  - cell "Advanced configuration object" [ref=e516]
+            - paragraph [ref=e517]:
+              - text: "*Either"
+              - code [ref=e518]: "`path`"
+              - text: (embedded mode) or both
+              - code [ref=e519]: "`vectordb_url`"
+              - text: and
+              - code [ref=e520]: "`agfs_url`"
+              - text: (service mode) must be provided.
+            - paragraph [ref=e521]:
+              - strong [ref=e522]: "Example: Embedded Mode"
+            - code [ref=e524]:
+              - generic [ref=e525]: import openviking as ov
+              - generic [ref=e526]: "# Create client with local storage"
+              - generic [ref=e527]: client = ov.OpenViking(path="./my_data")
+              - generic [ref=e528]: client.initialize()
+              - generic [ref=e529]: "# Use client..."
+              - generic [ref=e530]: results = client.find("test query")
+              - generic [ref=e531]: "print(f\"Found {results.total} results\")"
+              - generic [ref=e532]: client.close()
+            - paragraph [ref=e533]:
+              - strong [ref=e534]: "Example: Service Mode"
+            - code [ref=e536]:
+              - generic [ref=e537]: import openviking as ov
+              - generic [ref=e538]: "# Connect to remote services"
+              - generic [ref=e539]: client = ov.OpenViking(
+              - generic [ref=e540]: vectordb_url="http://vectordb.example.com:8000",
+              - generic [ref=e541]: agfs_url="http://agfs.example.com:8001",
+              - generic [ref=e542]: )
+              - generic [ref=e543]: client.initialize()
+              - generic [ref=e544]: "# Use client..."
+              - generic [ref=e545]: client.close()
+            - paragraph [ref=e546]:
+              - strong [ref=e547]: "Example: Using Config Object"
+            - code [ref=e549]:
+              - generic [ref=e550]: import openviking as ov
+              - generic [ref=e551]: from openviking.utils.config import (
+              - generic [ref=e552]: OpenVikingConfig,
+              - generic [ref=e553]: StorageConfig,
+              - generic [ref=e554]: AGFSConfig,
+              - generic [ref=e555]: VectorDBBackendConfig
+              - generic [ref=e556]: )
+              - generic [ref=e557]: config = OpenVikingConfig(
+              - generic [ref=e558]: storage=StorageConfig(
+              - generic [ref=e559]: agfs=AGFSConfig(
+              - generic [ref=e560]: backend="local",
+              - generic [ref=e561]: path="./custom_data",
+              - generic [ref=e562]: ),
+              - generic [ref=e563]: vectordb=VectorDBBackendConfig(
+              - generic [ref=e564]: backend="local",
+              - generic [ref=e565]: path="./custom_data",
+              - generic [ref=e566]: )
+              - generic [ref=e567]: )
+              - generic [ref=e568]: )
+              - generic [ref=e569]: client = ov.OpenViking(config=config)
+              - generic [ref=e570]: client.initialize()
+              - generic [ref=e571]: "# Use client..."
+              - generic [ref=e572]: client.close()
+            - separator [ref=e573]
+            - heading "initialize()" [level=3] [ref=e574]
+            - paragraph [ref=e575]: Initialize storage and indexes. Must be called before using other methods.
+            - paragraph [ref=e576]:
+              - strong [ref=e577]: Signature
+            - code [ref=e579]:
+              - generic [ref=e580]: def initialize(self) -> None
+            - paragraph [ref=e581]:
+              - strong [ref=e582]: Parameters
+            - paragraph [ref=e583]: None.
+            - paragraph [ref=e584]:
+              - strong [ref=e585]: Returns
+            - table [ref=e586]:
+              - rowgroup [ref=e587]:
+                - row "Type Description" [ref=e588]:
+                  - columnheader "Type" [ref=e589]
+                  - columnheader "Description" [ref=e590]
+              - rowgroup [ref=e591]:
+                - row "None -" [ref=e592]:
+                  - cell "None" [ref=e593]
+                  - cell "-" [ref=e594]
+            - paragraph [ref=e595]:
+              - strong [ref=e596]: Example
+            - code [ref=e598]:
+              - generic [ref=e599]: client = ov.OpenViking(path="./data")
+              - generic [ref=e600]: "client.initialize() # Required before any operations"
+            - separator [ref=e601]
+            - heading "close()" [level=3] [ref=e602]
+            - paragraph [ref=e603]: Close the client and release resources.
+            - paragraph [ref=e604]:
+              - strong [ref=e605]: Signature
+            - code [ref=e607]:
+              - generic [ref=e608]: def close(self) -> None
+            - paragraph [ref=e609]:
+              - strong [ref=e610]: Parameters
+            - paragraph [ref=e611]: None.
+            - paragraph [ref=e612]:
+              - strong [ref=e613]: Returns
+            - table [ref=e614]:
+              - rowgroup [ref=e615]:
+                - row "Type Description" [ref=e616]:
+                  - columnheader "Type" [ref=e617]
+                  - columnheader "Description" [ref=e618]
+              - rowgroup [ref=e619]:
+                - row "None -" [ref=e620]:
+                  - cell "None" [ref=e621]
+                  - cell "-" [ref=e622]
+            - paragraph [ref=e623]:
+              - strong [ref=e624]: Example
+            - code [ref=e626]:
+              - generic [ref=e627]: client = ov.OpenViking(path="./data")
+              - generic [ref=e628]: client.initialize()
+              - generic [ref=e629]: "# ... use client ..."
+              - generic [ref=e630]: "client.close() # Clean up resources"
+            - separator [ref=e631]
+            - heading "wait_processed()" [level=3] [ref=e632]
+            - paragraph [ref=e633]: Wait for all pending resource processing to complete.
+            - paragraph [ref=e634]:
+              - strong [ref=e635]: Signature
+            - code [ref=e637]:
+              - generic [ref=e638]: "def wait_processed(self, timeout: float = None) -> Dict[str, Any]"
+            - paragraph [ref=e639]:
+              - strong [ref=e640]: Parameters
+            - table [ref=e641]:
+              - rowgroup [ref=e642]:
+                - row "Parameter Type Required Default Description" [ref=e643]:
+                  - columnheader "Parameter" [ref=e644]
+                  - columnheader "Type" [ref=e645]
+                  - columnheader "Required" [ref=e646]
+                  - columnheader "Default" [ref=e647]
+                  - columnheader "Description" [ref=e648]
+              - rowgroup [ref=e649]:
+                - row "timeout float No None Timeout in seconds" [ref=e650]:
+                  - cell "timeout" [ref=e651]
+                  - cell "float" [ref=e652]
+                  - cell "No" [ref=e653]
+                  - cell "None" [ref=e654]
+                  - cell "Timeout in seconds" [ref=e655]
+            - paragraph [ref=e656]:
+              - strong [ref=e657]: Returns
+            - table [ref=e658]:
+              - rowgroup [ref=e659]:
+                - row "Type Description" [ref=e660]:
+                  - columnheader "Type" [ref=e661]
+                  - columnheader "Description" [ref=e662]
+              - rowgroup [ref=e663]:
+                - row "Dict[str, Any] Processing status for each queue" [ref=e664]:
+                  - cell "Dict[str, Any]" [ref=e665]
+                  - cell "Processing status for each queue" [ref=e666]
+            - paragraph [ref=e667]:
+              - strong [ref=e668]: Return Structure
+            - code [ref=e670]:
+              - generic [ref=e671]: "{"
+              - generic [ref=e672]: "\"queue_name\": {"
+              - generic [ref=e673]: "\"processed\": 10, # Number of processed items"
+              - generic [ref=e674]: "\"error_count\": 0, # Number of errors"
+              - generic [ref=e675]: "\"errors\": [] # Error details"
+              - generic [ref=e676]: "}"
+              - generic [ref=e677]: "}"
+            - paragraph [ref=e678]:
+              - strong [ref=e679]: Example
+            - code [ref=e681]:
+              - generic [ref=e682]: import openviking as ov
+              - generic [ref=e683]: client = ov.OpenViking(path="./data")
+              - generic [ref=e684]: client.initialize()
+              - generic [ref=e685]: "# Add resources"
+              - generic [ref=e686]: client.add_resource("./docs/")
+              - generic [ref=e687]: "# Wait for processing to complete"
+              - generic [ref=e688]: status = client.wait_processed(timeout=60)
+              - generic [ref=e689]: "print(f\"Processed: {status}\")"
+              - generic [ref=e690]: client.close()
+            - separator [ref=e691]
+            - heading "reset()" [level=3] [ref=e692]
+            - paragraph [ref=e693]: Reset the singleton instance. Primarily used for testing.
+            - paragraph [ref=e694]:
+              - strong [ref=e695]: Signature
+            - code [ref=e697]:
+              - generic [ref=e698]: "@classmethod"
+              - generic [ref=e699]: def reset(cls) -> None
+            - paragraph [ref=e700]:
+              - strong [ref=e701]: Parameters
+            - paragraph [ref=e702]: None.
+            - paragraph [ref=e703]:
+              - strong [ref=e704]: Returns
+            - table [ref=e705]:
+              - rowgroup [ref=e706]:
+                - row "Type Description" [ref=e707]:
+                  - columnheader "Type" [ref=e708]
+                  - columnheader "Description" [ref=e709]
+              - rowgroup [ref=e710]:
+                - row "None -" [ref=e711]:
+                  - cell "None" [ref=e712]
+                  - cell "-" [ref=e713]
+            - paragraph [ref=e714]:
+              - strong [ref=e715]: Example
+            - code [ref=e717]:
+              - generic [ref=e718]: "# Reset singleton (for testing)"
+              - generic [ref=e719]: ov.OpenViking.reset()
+            - separator [ref=e720]
+            - heading "observers" [level=3] [ref=e721]
+            - paragraph [ref=e722]: Get observer objects for monitoring.
+            - paragraph [ref=e723]:
+              - strong [ref=e724]: Signature
+            - code [ref=e726]:
+              - generic [ref=e727]: "@property"
+              - generic [ref=e728]: def observers(self) -> Dict[str, Any]
+            - paragraph [ref=e729]:
+              - strong [ref=e730]: Returns
+            - table [ref=e731]:
+              - rowgroup [ref=e732]:
+                - row "Type Description" [ref=e733]:
+                  - columnheader "Type" [ref=e734]
+                  - columnheader "Description" [ref=e735]
+              - rowgroup [ref=e736]:
+                - row "Dict[str, Any] Observer objects" [ref=e737]:
+                  - cell "Dict[str, Any]" [ref=e738]
+                  - cell "Observer objects" [ref=e739]
+            - paragraph [ref=e740]:
+              - strong [ref=e741]: Return Structure
+            - code [ref=e743]:
+              - generic [ref=e744]: "{"
+              - generic [ref=e745]: "\"queue\": QueueObserver, # Queue processing observer"
+              - generic [ref=e746]: "\"vikingdb\": VikingDBObserver # Vector database observer"
+              - generic [ref=e747]: "}"
+            - separator [ref=e748]
+            - heading "Singleton Behavior" [level=2] [ref=e749]
+            - paragraph [ref=e750]: "In embedded mode, OpenViking uses singleton pattern:"
+            - code [ref=e752]:
+              - generic [ref=e753]: "# These return the same instance"
+              - generic [ref=e754]: client1 = ov.OpenViking(path="./data")
+              - generic [ref=e755]: client2 = ov.OpenViking(path="./data")
+              - generic [ref=e756]: "assert client1 is client2 # True"
+            - paragraph [ref=e757]: "In service mode, each call creates a new instance:"
+            - code [ref=e759]:
+              - generic [ref=e760]: "# These are different instances"
+              - generic [ref=e761]: client1 = ov.OpenViking(vectordb_url="...", agfs_url="...")
+              - generic [ref=e762]: client2 = ov.OpenViking(vectordb_url="...", agfs_url="...")
+              - generic [ref=e763]: "assert client1 is not client2 # True"
+            - heading "Error Handling" [level=2] [ref=e764]
+            - code [ref=e766]:
+              - generic [ref=e767]: import openviking as ov
+              - generic [ref=e768]: client = ov.OpenViking(path="./data")
+              - generic [ref=e769]: "try:"
+              - generic [ref=e770]: client.initialize()
+              - generic [ref=e771]: "except RuntimeError as e:"
+              - generic [ref=e772]: "print(f\"Initialization failed: {e}\")"
+              - generic [ref=e773]: "try:"
+              - generic [ref=e774]: content = client.read("viking://invalid/path/")
+              - generic [ref=e775]: "except FileNotFoundError:"
+              - generic [ref=e776]: print("Resource not found")
+              - generic [ref=e777]: client.close()
+            - heading "Related Documentation" [level=2] [ref=e778]
+            - list [ref=e779]:
+              - listitem [ref=e780]:
+                - link "Resources" [ref=e781] [cursor=pointer]:
+                  - /url: resources.md
+                - text: "- Resource management"
+              - listitem [ref=e782]:
+                - link "Retrieval" [ref=e783] [cursor=pointer]:
+                  - /url: retrieval.md
+                - text: "- Search operations"
+              - listitem [ref=e784]:
+                - link "Sessions" [ref=e785] [cursor=pointer]:
+                  - /url: sessions.md
+                - text: "- Session management"
+              - listitem [ref=e786]:
+                - link "Configuration" [ref=e787] [cursor=pointer]:
+                  - /url: ../configuration/configuration.md
+                - text: "- Configuration options"
+      - complementary [ref=e85]:
+        - heading "Directory Navigation" [level=3] [ref=e86]
+        - navigation [ref=e273]:
+          - button "Client" [ref=e788] [cursor=pointer]
+          - button "Deployment Modes" [ref=e789] [cursor=pointer]
+          - button "API Reference" [ref=e790] [cursor=pointer]
+          - button "OpenViking()" [ref=e791] [cursor=pointer]
+          - button "initialize()" [ref=e792] [cursor=pointer]
+          - button "close()" [ref=e793] [cursor=pointer]
+          - button "wait_processed()" [ref=e794] [cursor=pointer]
+          - button "reset()" [ref=e795] [cursor=pointer]
+          - button "observers" [ref=e796] [cursor=pointer]
+          - button "Singleton Behavior" [ref=e797] [cursor=pointer]
+          - button "Error Handling" [ref=e798] [cursor=pointer]
+          - button "Related Documentation" [ref=e799] [cursor=pointer]

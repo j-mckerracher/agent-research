@@ -4,6 +4,16 @@ description: |
   Artifact I/O conventions and directory structure for multi-agent workflows. Use this skill when an agent needs to read or write workflow artifacts, understand the CHANGE-ID directory structure, or determine correct file paths for inputs and outputs. Provides: (1) Artifact root convention — {{artifact_root}}{CHANGE-ID}/ as the base path for all workflow artifacts, (2) Standard directory structure — intake/, planning/, execution/, qa/, summary/, logs/ with defined purposes, (3) Read/write permission model — which paths each agent role may access, (4) CHANGE-ID templating — how to construct artifact paths using the change identifier. Keywords: artifact root, CHANGE-ID, directory structure, intake, planning, execution, qa, summary, logs, artifact path, workflow artifacts, read write permissions, file path conventions.
 ---
 
+## Dynamic context to inject
+
+Use Claude Code's `!` pre-execution syntax when you need to resolve the active change identifier from the local workflow state instead of leaving `{CHANGE-ID}` abstract.
+
+```text
+!`cat .current-change-id 2>/dev/null || echo 'no active CHANGE-ID'`
+```
+
+Use the injected value to replace the placeholder when the workflow has already established an active change.
+
 # Artifact I/O & Directory Conventions
 
 Standard conventions for reading and writing workflow artifacts in multi-agent systems.

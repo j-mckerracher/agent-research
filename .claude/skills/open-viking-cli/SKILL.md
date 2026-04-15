@@ -3,6 +3,10 @@ name: ov
 description: Use the OpenViking Rust CLI (ov) to operate OpenViking over HTTP—ingest resources/skills, browse the VikingFS, run retrieval, manage sessions/relations, and inspect system state. This skill lists ov commands and operations only.
 ---
 
+## Dynamic context
+
+No default `!` pre-execution injection is recommended for this skill. It is command reference material, so default shell injection would add noise more often than value.
+
 # ov — OpenViking CLI Skill (Operations Only)
 
 **Scope**  

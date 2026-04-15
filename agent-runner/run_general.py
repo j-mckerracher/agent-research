@@ -41,7 +41,7 @@ def log(msg: str) -> None:
     print(f"[run_general] {_ts()} {msg}", flush=True)
 
 
-def _build_claude_cmd(args: argparse.Namespace) -> list[str]:
+def _build_claude_code_cmd(args: argparse.Namespace) -> list[str]:
     """Build the ``claude`` CLI command list."""
     cmd = ["claude", "--print"]
     if args.model:
@@ -53,21 +53,40 @@ def _build_claude_cmd(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
-def _build_copilot_cmd(args: argparse.Namespace) -> list[str]:
+def _build_github_copilot_cmd(args: argparse.Namespace) -> list[str]:
     """Build the ``copilot`` CLI command list."""
     cmd = ["copilot"]
     if args.model:
         cmd += ["--model", args.model]
     if args.agent:
         cmd += ["--agent", args.agent]
-    cmd.append(args.prompt)
+    cmd += ["--allow-all-tools", "--allow-all-paths", "-p", args.prompt]
     return cmd
 
 
 _BACKEND_BUILDERS = {
-    "claude": _build_claude_cmd,
-    "copilot": _build_copilot_cmd,
+    "claude-code": _build_claude_code_cmd,
+    "github-copilot": _build_github_copilot_cmd,
 }
+
+# Map backend name to the CLI executable it invokes
+_BACKEND_CLI = {
+    "claude-code": "claude",
+    "github-copilot": "copilot",
+}
+
+
+def _resolve_repo(name_or_path: str) -> Path | None:
+    """Return resolved Path for a repo name or absolute path.
+
+    Accepts an absolute path (used as-is) or a bare name (searched under ~/Code).
+    Returns None if the directory cannot be found.
+    """
+    p = Path(name_or_path)
+    if p.is_absolute():
+        return p.resolve() if p.is_dir() else None
+    candidate = Path.home() / "Code" / name_or_path
+    return candidate.resolve() if candidate.is_dir() else None
 
 
 def _write_summary(path: Path, *, exit_code: int, elapsed: float, backend: str) -> None:
@@ -88,11 +107,17 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Run an AI agent against a repository with a freeform prompt.",
         epilog=(
-            "example:\n"
+            "Backends and available models:\n"
+            "  github-copilot  gpt-5.4 | gpt-5.3-codex | gpt-5.2 | gpt-5.1\n"
+            "                  gpt-5.4-mini | gpt-5-mini | gpt-4.1\n"
+            "                  claude-sonnet-4.6 | claude-opus-4.6 | claude-haiku-4.5\n"
+            "  claude-code     claude-opus-4-5 | claude-sonnet-4-5 | claude-haiku-4-5\n"
+            "\n"
+            "Example:\n"
             "  python3 run_general.py \\\n"
-            "    --backend copilot --model \"sonnet 4.6\" \\\n"
+            "    --backend github-copilot --model claude-sonnet-4.6 \\\n"
             "    --prompt \"Fix the failing unit tests\" \\\n"
-            "    --repo /Users/mckerracher.joshua/Code/mcs-products-mono-ui"
+            "    --repo mcs-products-mono-ui"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -100,12 +125,12 @@ def main(argv: list[str] | None = None) -> int:
         "--backend",
         required=True,
         choices=sorted(_BACKEND_BUILDERS),
-        help="AI backend to invoke (claude or copilot)",
+        help="AI backend to invoke (claude-code or github-copilot)",
     )
     parser.add_argument(
         "--model",
         default=None,
-        help="Model identifier passed to the backend CLI (e.g. sonnet, opus, gpt-4.1)",
+        help="Model identifier passed to the backend CLI (e.g. claude-sonnet-4.6, gpt-5.2)",
     )
     parser.add_argument(
         "--prompt",
@@ -115,8 +140,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--repo",
         required=True,
-        type=Path,
-        help="Absolute path to the repository to run in (used as cwd)",
+        help=(
+            "Repository name (e.g. mcs-products-mono-ui, searched under ~/Code) "
+            "or absolute path to the repository"
+        ),
     )
     parser.add_argument(
         "--agent",
@@ -131,15 +158,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # Validate repo exists
-    repo = args.repo.resolve()
-    if not repo.is_dir():
-        log(f"Error: repo directory does not exist: {repo}")
+    # Resolve repo — accepts name or absolute path
+    repo = _resolve_repo(args.repo)
+    if repo is None:
+        log(
+            f"Error: repo '{args.repo}' not found. "
+            f"Checked ~/Code/{args.repo} and as an absolute path. "
+            "Provide a name that exists under ~/Code or an absolute directory path."
+        )
         return 1
 
     # Validate backend CLI is available
-    if shutil.which(args.backend) is None:
-        log(f"Error: {args.backend!r} CLI not found on PATH")
+    cli = _BACKEND_CLI[args.backend]
+    if shutil.which(cli) is None:
+        log(f"Error: {cli!r} CLI not found on PATH")
         return 1
 
     # Build command

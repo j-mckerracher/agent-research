@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 TriggerSource = Literal["discord", "http", "azure_devops"]
 RunStatusValue = Literal["pending", "running", "complete", "failed", "cancelled"]
-BackendValue = Literal["copilot", "claude"]
+BackendValue = Literal["github-copilot", "claude-code"]
 
 
 class TriggerEvent(BaseModel):

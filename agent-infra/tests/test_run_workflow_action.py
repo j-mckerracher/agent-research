@@ -140,7 +140,7 @@ class TestRunSync:
             "p.add_argument('--backend', default=None)\n"
             "p.add_argument('--output-json')\n"
             "args = p.parse_args()\n"
-            "assert args.backend == 'claude', f'Expected claude, got {args.backend}'\n"
+            "assert args.backend == 'claude-code', f'Expected claude-code, got {args.backend}'\n"
             "open(args.output_json, 'w').write('{}')\n"
             "sys.exit(0)\n"
         )
@@ -148,7 +148,7 @@ class TestRunSync:
             run_store=store,
             default_repo=str(tmp_path),
             runner_script=script,
-            backend="claude",
+            backend="claude-code",
         )
         event = _event()
         store.add(RunRecord(change_id="WI-1234", status="running", source="http"))
@@ -165,7 +165,7 @@ class TestRunSync:
             "p.add_argument('--backend', default=None)\n"
             "p.add_argument('--output-json')\n"
             "args = p.parse_args()\n"
-            "assert args.backend == 'copilot'\n"
+            "assert args.backend == 'github-copilot'\n"
             "open(args.output_json, 'w').write('{}')\n"
             "sys.exit(0)\n"
         )
@@ -173,13 +173,13 @@ class TestRunSync:
             run_store=store,
             default_repo=str(tmp_path),
             runner_script=script,
-            backend="claude",  # default
+            backend="claude-code",  # default
         )
         event = TriggerEvent(
             source="http",
             action="run",
             change_id="WI-1234",
-            backend="copilot",  # override
+            backend="github-copilot",  # override
         )
         store.add(RunRecord(change_id="WI-1234", status="running", source="http"))
         handler.run_sync(event)

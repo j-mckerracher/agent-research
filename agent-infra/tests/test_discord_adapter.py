@@ -46,25 +46,25 @@ class TestParseTrigger:
         assert result == ("WI-100", "/home/user/myrepo", None)
 
     def test_run_with_backend_claude(self):
-        result = parse_trigger("RUN: WI-100 claude")
-        assert result == ("WI-100", None, "claude")
+        result = parse_trigger("RUN: WI-100 claude-code")
+        assert result == ("WI-100", None, "claude-code")
 
     def test_run_with_backend_copilot(self):
-        result = parse_trigger("RUN: WI-100 copilot")
-        assert result == ("WI-100", None, "copilot")
+        result = parse_trigger("RUN: WI-100 github-copilot")
+        assert result == ("WI-100", None, "github-copilot")
 
     def test_run_with_repo_and_backend(self):
-        result = parse_trigger("RUN: WI-100 /home/user/myrepo claude")
-        assert result == ("WI-100", "/home/user/myrepo", "claude")
+        result = parse_trigger("RUN: WI-100 /home/user/myrepo claude-code")
+        assert result == ("WI-100", "/home/user/myrepo", "claude-code")
 
     def test_run_with_repo_and_backend_copilot(self):
-        result = parse_trigger("RUN: WI-100 /home/user/myrepo copilot")
-        assert result == ("WI-100", "/home/user/myrepo", "copilot")
+        result = parse_trigger("RUN: WI-100 /home/user/myrepo github-copilot")
+        assert result == ("WI-100", "/home/user/myrepo", "github-copilot")
 
     def test_backend_case_insensitive(self):
-        assert parse_trigger("RUN: WI-1 CLAUDE") == ("WI-1", None, "claude")
-        assert parse_trigger("RUN: WI-1 COPILOT") == ("WI-1", None, "copilot")
-        assert parse_trigger("RUN: WI-1 /path CLAUDE") == ("WI-1", "/path", "claude")
+        assert parse_trigger("RUN: WI-1 CLAUDE-CODE") == ("WI-1", None, "claude-code")
+        assert parse_trigger("RUN: WI-1 GITHUB-COPILOT") == ("WI-1", None, "github-copilot")
+        assert parse_trigger("RUN: WI-1 /path CLAUDE-CODE") == ("WI-1", "/path", "claude-code")
 
     def test_case_insensitive_prefix(self):
         assert parse_trigger("run: WI-1") == ("WI-1", None, None)
@@ -99,8 +99,8 @@ class TestParseTrigger:
 
     def test_repo_with_spaces_and_backend(self):
         # Backend keyword recognised at end even when path contains spaces.
-        result = parse_trigger("RUN: WI-1 /path/to/my repo claude")
-        assert result == ("WI-1", "/path/to/my repo", "claude")
+        result = parse_trigger("RUN: WI-1 /path/to/my repo claude-code")
+        assert result == ("WI-1", "/path/to/my repo", "claude-code")
 
     def test_multiword_body_no_backend(self):
         result = parse_trigger("RUN: WI-9 extra-word /some/path")
@@ -125,8 +125,8 @@ class TestHelpMessage:
         assert "RUN:" in HELP_MESSAGE
 
     def test_help_message_contains_both_backends(self):
-        assert "claude" in HELP_MESSAGE
-        assert "copilot" in HELP_MESSAGE
+        assert "claude-code" in HELP_MESSAGE
+        assert "github-copilot" in HELP_MESSAGE
 
     def test_help_message_contains_examples(self):
         assert "WI-" in HELP_MESSAGE
@@ -430,41 +430,41 @@ class TestTokeniseArgs:
 class TestParseGeneralTrigger:
     def test_basic_required_args(self):
         result = parse_general_trigger(
-            'RUN: --backend claude --prompt "Fix tests" --repo /path/to/repo'
+            'RUN: --backend claude-code --prompt "Fix tests" --repo my-repo'
         )
         assert result is not None
-        assert result["backend"] == "claude"
+        assert result["backend"] == "claude-code"
         assert result["prompt"] == "Fix tests"
-        assert result["repo"] == "/path/to/repo"
+        assert result["repo"] == "my-repo"
         assert result["model"] is None
         assert result["agent"] is None
 
     def test_all_args(self):
         result = parse_general_trigger(
-            'RUN: --backend claude --model sonnet --prompt "Fix tests" --repo /path --agent spike.agent.md'
+            'RUN: --backend claude-code --model claude-sonnet-4-5 --prompt "Fix tests" --repo my-repo --agent spike.agent.md'
         )
         assert result is not None
-        assert result["backend"] == "claude"
-        assert result["model"] == "sonnet"
+        assert result["backend"] == "claude-code"
+        assert result["model"] == "claude-sonnet-4-5"
         assert result["prompt"] == "Fix tests"
-        assert result["repo"] == "/path"
+        assert result["repo"] == "my-repo"
         assert result["agent"] == "spike.agent.md"
 
     def test_missing_backend_returns_none(self):
         result = parse_general_trigger(
-            'RUN: --prompt "Fix tests" --repo /path'
+            'RUN: --prompt "Fix tests" --repo my-repo'
         )
         assert result is None
 
     def test_missing_prompt_returns_none(self):
         result = parse_general_trigger(
-            "RUN: --backend claude --repo /path"
+            "RUN: --backend claude-code --repo my-repo"
         )
         assert result is None
 
     def test_missing_repo_returns_none(self):
         result = parse_general_trigger(
-            'RUN: --backend claude --prompt "Fix tests"'
+            'RUN: --backend claude-code --prompt "Fix tests"'
         )
         assert result is None
 
@@ -477,26 +477,26 @@ class TestParseGeneralTrigger:
 
     def test_non_flag_body_returns_none(self):
         # Positional-style message should NOT match the general parser
-        result = parse_general_trigger("RUN: WI-1234 claude")
+        result = parse_general_trigger("RUN: WI-1234 claude-code")
         assert result is None
 
     def test_case_insensitive_prefix(self):
         result = parse_general_trigger(
-            'run: --backend claude --prompt "test" --repo /path'
+            'run: --backend claude-code --prompt "test" --repo my-repo'
         )
         assert result is not None
-        assert result["backend"] == "claude"
+        assert result["backend"] == "claude-code"
 
     def test_extra_args_captured(self):
         result = parse_general_trigger(
-            'RUN: --backend claude --prompt "test" --repo /path --custom-flag value'
+            'RUN: --backend claude-code --prompt "test" --repo my-repo --custom-flag value'
         )
         assert result is not None
         assert result.get("custom-flag") == "value"
 
     def test_prompt_with_quotes_preserved(self):
         result = parse_general_trigger(
-            'RUN: --backend claude --prompt "This is a long prompt with spaces" --repo /path'
+            'RUN: --backend github-copilot --prompt "This is a long prompt with spaces" --repo my-repo'
         )
         assert result is not None
         assert result["prompt"] == "This is a long prompt with spaces"

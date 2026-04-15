@@ -1,0 +1,115 @@
+2026-04-14 10:33:59 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 10:33:59 [trigger] Guild:         Agent-Escalations
+2026-04-14 10:33:59 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 10:33:59 [trigger] Poll interval: 10s
+2026-04-14 10:33:59 [trigger] General channel: #trigger-agents-general
+2026-04-14 10:33:59 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 10:33:59 [trigger] Resolving Discord guild and channel…
+2026-04-14 10:33:59 [trigger] Fatal Discord error: Discord API GET /users/@me/guilds → HTTP 429: {"message": "You are being rate limited.", "retry_after": 0.997, "global": false}
+2026-04-14 10:34:19 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 10:34:19 [trigger] Guild:         Agent-Escalations
+2026-04-14 10:34:19 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 10:34:19 [trigger] Poll interval: 10s
+2026-04-14 10:34:19 [trigger] General channel: #trigger-agents-general
+2026-04-14 10:34:19 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 10:34:19 [trigger] Resolving Discord guild and channel…
+2026-04-14 10:34:20 [trigger] Fatal Discord error: Discord API GET /users/@me/guilds → HTTP 429: {"message": "You are being rate limited.", "retry_after": 0.99, "global": false}
+2026-04-14 10:35:26 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 10:35:26 [trigger] Guild:         Agent-Escalations
+2026-04-14 10:35:26 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 10:35:26 [trigger] Poll interval: 10s
+2026-04-14 10:35:26 [trigger] General channel: #trigger-agents-general
+2026-04-14 10:35:26 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 10:35:26 [trigger] Resolving Discord guild and channel…
+2026-04-14 10:35:26 [trigger] Fatal Discord error: Guild 'Agent-Escalations' not found. Bot is in: ['arigato-mr-roboto']
+2026-04-14 10:37:47 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 10:37:47 [trigger] Guild:         arigato-mr-roboto
+2026-04-14 10:37:47 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 10:37:47 [trigger] Poll interval: 10s
+2026-04-14 10:37:47 [trigger] General channel: #trigger-agents-general
+2026-04-14 10:37:47 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 10:37:47 [trigger] Resolving Discord guild and channel…
+2026-04-14 10:37:47 [trigger] Guild ID: 1491462454843019304
+2026-04-14 10:37:47 [trigger] [general] Fatal error in general poller: Discord API GET /users/@me/guilds → HTTP 429: {"message": "You are being rate limited.", "retry_after": 0.985, "global": false}
+2026-04-14 10:37:47 [trigger] #trigger-agents-ado-work channel ID: 1491495402690842816
+2026-04-14 10:37:47 [trigger] Polling every 10s. Post 'RUN: WI-XXXX claude|copilot [/repo/path]' in #trigger-agents-ado-work to start a workflow.
+2026-04-14 10:37:48 [trigger] Seeded last_seen_id=1493648087661678903 (skipping existing history)
+2026-04-14 10:39:32 [trigger] Shutting down.
+2026-04-14 10:56:08 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 10:56:08 [trigger] Guild:         arigato-mr-roboto
+2026-04-14 10:56:08 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 10:56:08 [trigger] Poll interval: 10s
+2026-04-14 10:56:08 [trigger] Resolving guild ID…
+2026-04-14 10:56:08 [trigger] Guild ID: 1491462454843019304
+2026-04-14 10:56:08 [trigger] General channel: #trigger-agents-general
+2026-04-14 10:56:08 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 10:56:08 [trigger] Resolving Discord guild and channel…
+2026-04-14 10:56:08 [trigger] Guild ID: 1491462454843019304
+2026-04-14 10:56:08 [trigger] [general] #trigger-agents-general channel ID: 1493640389108695284  (polling every 10s)
+2026-04-14 10:56:08 [trigger] #trigger-agents-ado-work channel ID: 1491495402690842816
+2026-04-14 10:56:08 [trigger] Polling every 10s. Post 'RUN: WI-XXXX claude|copilot [/repo/path]' in #trigger-agents-ado-work to start a workflow.
+2026-04-14 10:56:09 [trigger] [general] Seeded last_seen_id=1493656000572559513
+2026-04-14 10:56:09 [trigger] Seeded last_seen_id=1493648087661678903 (skipping existing history)
+2026-04-14 10:59:38 [trigger] [general] Trigger from Josh M: backend=copilot repo=/Users/mckerracher.joshua/Code/Mine/obsidian-vault
+2026-04-14 11:00:51 [trigger] [general] Warning: failed to fetch messages: Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493656997801889954 → network error: [Errno 54] Connection reset by peer
+2026-04-14 11:06:49 [trigger] Shutting down.
+2026-04-14 11:06:59 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 11:06:59 [trigger] Guild:         arigato-mr-roboto
+2026-04-14 11:06:59 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 11:06:59 [trigger] Poll interval: 10s
+2026-04-14 11:06:59 [trigger] Resolving guild ID…
+2026-04-14 11:06:59 [trigger] Guild ID: 1491462454843019304
+2026-04-14 11:06:59 [trigger] General channel: #trigger-agents-general
+2026-04-14 11:06:59 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 11:06:59 [trigger] Resolving Discord guild and channel…
+2026-04-14 11:06:59 [trigger] Guild ID: 1491462454843019304
+2026-04-14 11:07:00 [trigger] [general] #trigger-agents-general channel ID: 1493640389108695284  (polling every 10s)
+2026-04-14 11:07:00 [trigger] #trigger-agents-ado-work channel ID: 1491495402690842816
+2026-04-14 11:07:00 [trigger] Polling every 10s. Post 'RUN: WI-XXXX claude|copilot [/repo/path]' in #trigger-agents-ado-work to start a workflow.
+2026-04-14 11:07:00 [trigger] [general] Seeded last_seen_id=1493656997801889954
+2026-04-14 11:07:00 [trigger] Seeded last_seen_id=1493648087661678903 (skipping existing history)
+2026-04-14 11:07:52 [trigger] [general] Trigger from Josh M: backend=copilot repo=/Users/mckerracher.joshua/Code/Mine/obsidian-vault
+2026-04-14 11:44:15 [trigger] Shutting down.
+2026-04-14 11:44:19 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 11:44:19 [trigger] Guild:         arigato-mr-roboto
+2026-04-14 11:44:19 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 11:44:19 [trigger] Poll interval: 10s
+2026-04-14 11:44:19 [trigger] Resolving guild ID…
+2026-04-14 11:44:19 [trigger] Guild ID: 1491462454843019304
+2026-04-14 11:44:19 [trigger] General channel: #trigger-agents-general
+2026-04-14 11:44:19 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 11:44:19 [trigger] Resolving Discord guild and channel…
+2026-04-14 11:44:19 [trigger] Guild ID: 1491462454843019304
+2026-04-14 11:44:19 [trigger] #trigger-agents-ado-work channel ID: 1491495402690842816
+2026-04-14 11:44:19 [trigger] Polling every 10s. Post 'RUN: WI-XXXX claude-code|github-copilot [/repo/path]' in #trigger-agents-ado-work to start a workflow.
+2026-04-14 11:44:19 [trigger] [general] #trigger-agents-general channel ID: 1493640389108695284  (polling every 10s)
+2026-04-14 11:44:20 [trigger] [general] Seeded last_seen_id=1493659066701185201
+2026-04-14 11:44:20 [trigger] Seeded last_seen_id=1493648087661678903 (skipping existing history)
+2026-04-14 12:07:57 [trigger] [general] Warning: failed to fetch messages: Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493668291485499602 → network error: [Errno 54] Connection reset by peer
+2026-04-14 12:26:14 [trigger] [general] Warning: failed to fetch messages: Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493668291485499602 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
+2026-04-14 12:31:27 [trigger] Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1493648087661678903 → network error: [Errno 54] Connection reset by peer
+2026-04-14 12:38:09 [trigger] Warning: failed to fetch messages: Discord API GET /channels/1491495402690842816/messages?limit=50&after=1493648087661678903 → network error: [Errno 54] Connection reset by peer
+2026-04-14 12:58:58 [trigger] [general] Warning: failed to fetch messages: Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493681935409741846 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
+2026-04-14 13:01:49 [trigger] [general] Warning: failed to fetch messages: Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493681935409741846 → HTTP 503: upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory
+2026-04-14 13:36:37 [trigger] Shutting down.
+2026-04-14 13:36:46 [trigger] Default repo:  /Users/mckerracher.joshua/Code/mcs-products-mono-ui
+2026-04-14 13:36:46 [trigger] Guild:         arigato-mr-roboto
+2026-04-14 13:36:46 [trigger] Channel:       #trigger-agents-ado-work
+2026-04-14 13:36:46 [trigger] Poll interval: 10s
+2026-04-14 13:36:46 [trigger] Resolving guild ID…
+2026-04-14 13:36:46 [trigger] Guild ID: 1491462454843019304
+2026-04-14 13:36:46 [trigger] General channel: #trigger-agents-general
+2026-04-14 13:36:46 [trigger] [general] Resolving guild and #trigger-agents-general…
+2026-04-14 13:36:46 [trigger] Resolving Discord guild and channel…
+2026-04-14 13:36:46 [trigger] Guild ID: 1491462454843019304
+2026-04-14 13:36:46 [trigger] #trigger-agents-ado-work channel ID: 1491495402690842816
+2026-04-14 13:36:46 [trigger] Polling every 10s. Post 'RUN: WI-XXXX claude-code|github-copilot [repo-name]' in #trigger-agents-ado-work to start a workflow.
+2026-04-14 13:36:47 [trigger] [general] #trigger-agents-general channel ID: 1493640389108695284  (polling every 10s)
+2026-04-14 13:36:47 [trigger] Seeded last_seen_id=1493648087661678903 (skipping existing history)
+2026-04-14 13:36:47 [trigger] [general] Seeded last_seen_id=1493681935409741846
+2026-04-14 16:27:16 [trigger] Warning: failed to fetch messages (failure #1, backing off 60s): Discord API GET /channels/1491495402690842816/messages?limit=50&after=1493648087661678903 → network error: [Errno 8] nodename nor servname provided, or not known
+2026-04-14 16:27:20 [trigger] [general] Warning: failed to fetch messages (failure #1, backing off 60s): Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493713700798988539 → network error: [Errno 8] nodename nor servname provided, or not known
+2026-04-14 17:32:09 [trigger] Warning: failed to fetch messages (failure #2, backing off 120s): Discord API GET /channels/1491495402690842816/messages?limit=50&after=1493648087661678903 → network error: [Errno 8] nodename nor servname provided, or not known
+2026-04-14 17:32:23 [trigger] [general] Warning: failed to fetch messages (failure #2, backing off 120s): Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493713700798988539 → network error: [Errno 8] nodename nor servname provided, or not known
+2026-04-14 17:52:18 [trigger] Warning: failed to fetch messages (failure #3, backing off 180s): Discord API GET /channels/1491495402690842816/messages?limit=50&after=1493648087661678903 → network error: [Errno 8] nodename nor servname provided, or not known
+2026-04-14 17:52:24 [trigger] [general] Warning: failed to fetch messages (failure #3, backing off 180s): Discord API GET /channels/1493640389108695284/messages?limit=50&after=1493713700798988539 → network error: [Errno 8] nodename nor servname provided, or not known

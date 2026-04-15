@@ -35,11 +35,11 @@ class TestTriggerEvent:
             action="run",
             change_id="WI-9999",
             repo_path="/some/repo",
-            backend="claude",
+            backend="claude-code",
             requester="alice",
             metadata={"thread_id": "abc"},
         )
-        assert e.backend == "claude"
+        assert e.backend == "claude-code"
         assert e.metadata["thread_id"] == "abc"
 
     def test_change_id_normalised_no_prefix(self):
@@ -85,7 +85,7 @@ class TestTriggerEvent:
             assert e.source == src
 
     def test_valid_backends(self):
-        for be in ("copilot", "claude"):
+        for be in ("github-copilot", "claude-code"):
             e = TriggerEvent(source="http", action="run", change_id="WI-1", backend=be)  # type: ignore[arg-type]
             assert e.backend == be
 
@@ -111,7 +111,7 @@ class TestTriggerEvent:
             source="http",
             action="general_run",
             change_id="GEN-1234",
-            backend="claude",
+            backend="claude-code",
             prompt="Fix the bug",
             model="sonnet",
             agent_file="spike.agent.md",

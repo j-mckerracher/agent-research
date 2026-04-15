@@ -4,6 +4,10 @@ description: |
   Shared standards for story-traceable code comments. Use this skill whenever an agent adds, proposes, or reviews inline or block code comments that reference acceptance criteria, story requirements, tickets, or work items. Requires WI-ID citation for story-linked comments, while leaving ordinary explanatory comments lightweight.
 ---
 
+## Dynamic context
+
+No default `!` pre-execution injection is recommended for this skill. It defines a static commenting standard, so baseline guidance should stay reference-only.
+
 # Code Comment Standards
 
 Shared rules for writing code comments that reference acceptance criteria, story requirements, or work-item context.

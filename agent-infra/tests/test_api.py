@@ -92,7 +92,7 @@ class TestTriggerEndpoint:
                 "action": "run",
                 "change_id": "WI-111",
                 "repo_path": "/some/path",
-                "backend": "claude",
+                "backend": "claude-code",
                 "requester": "alice",
                 "metadata": {"project": "abc"},
             },

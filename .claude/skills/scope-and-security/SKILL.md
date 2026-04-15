@@ -4,6 +4,10 @@ description: |
   Scope boundaries, security enforcement, and forbidden action rules for AI agent workflows. Use this skill whenever an agent needs to understand what files it may access or modify, what actions are prohibited, or how to handle secrets and credentials. Covers: (1) Artifact root write permissions and path scoping, (2) Forbidden file patterns — *.env*, *secret*, *credential*, *password*, lock files, node_modules, dist, build, .git, (3) Forbidden actions — no HTTP requests to external URLs, no credential access, no installing global packages, (4) Secrets handling — never log secrets, reference by name only, (5) Scope creep prevention — stop and document when out-of-scope changes are needed. Keywords: scope boundaries, forbidden actions, forbidden files, security, secrets, credentials, environment variables, artifact root, write permissions, scope creep, file patterns, network restrictions.
 ---
 
+## Dynamic context
+
+No default `!` pre-execution injection is recommended for this skill. It is a policy document, so keep the base skill static and inject live state only for task-specific enforcement.
+
 # Scope & Security Boundaries
 
 Mandatory rules for file access, forbidden actions, secrets handling, and scope control in agent workflows.

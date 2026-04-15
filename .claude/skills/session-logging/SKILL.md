@@ -4,6 +4,16 @@ description: |
   Agent session logging protocol for multi-agent workflows. Use this skill whenever an agent is spawned and needs to produce a structured log entry. Provides: (1) Standard log file naming convention — {CHANGE-ID}/logs/{agent_name}/{YYYYMMDD_HHMMSS}_session.json, (2) Required log fields — log_type, timestamp, change_id, iteration, session_summary, decisions_made, issues_encountered, notes, (3) Log content requirements — input/output artifacts, librarian queries, key decisions with rationale. Keywords: session log, log entry, agent logging, spawned, log file naming, timestamp, YYYYMMDD, session summary, decisions made, issues encountered, workflow logging.
 ---
 
+## Dynamic context to inject
+
+Use Claude Code's `!` pre-execution syntax when you need a live timestamp for the log filename instead of inventing one manually.
+
+```text
+!`date -u +"%Y%m%d_%H%M%S"`
+```
+
+Use the injected timestamp directly in the `{YYYYMMDD_HHMMSS}` slot for new log files.
+
 # Agent Session Logging Protocol
 
 Standard logging requirements for all stage agents in multi-agent workflows. The workflow runner follows the same directory convention for its event logs.
