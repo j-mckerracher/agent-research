@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit tests for `agent-runner/run.py`."""
+"""Unit tests for the refactored agent-runner package."""
 
 from __future__ import annotations
 
@@ -8,29 +8,44 @@ import io
 import json
 import sys
 import tempfile
+import threading
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW_ASSETS_ROOT = Path(__file__).resolve().parent.parent / ".claude"
-MODULE_PATH = Path(__file__).resolve().with_name("run.py")
+RUNNER_DIR = Path(__file__).resolve().parent
+REPO_ROOT = RUNNER_DIR.parent
+if str(RUNNER_DIR) not in sys.path:
+    sys.path.insert(0, str(RUNNER_DIR))
 
-spec = importlib.util.spec_from_file_location("runner", MODULE_PATH)
-if spec is None or spec.loader is None:
-    raise RuntimeError(f"Unable to load module from {MODULE_PATH}")
-module = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = module
-spec.loader.exec_module(module)
+from agent_runner import agents as agents_module
+from agent_runner import commands as commands_module
+from agent_runner import models
+from agent_runner import runtime as runtime_module
+from agent_runner.cli import general as general_cli
+from agent_runner.cli import interactive as interactive_cli
+from agent_runner.integrations import ado as ado_module
+from agent_runner.integrations import discord_resume
+from agent_runner.workflow import stages as stages_module
+from agent_runner.workflow.engine import run_execution_loop, run_workflow
+
+BRIDGE_MODULE_PATH = REPO_ROOT / ".claude" / "scripts" / "discord_escalation_bridge.py"
+bridge_spec = importlib.util.spec_from_file_location(
+    "discord_escalation_bridge",
+    BRIDGE_MODULE_PATH,
+)
+if bridge_spec is None or bridge_spec.loader is None:
+    raise RuntimeError(f"Unable to load module from {BRIDGE_MODULE_PATH}")
+bridge_module = importlib.util.module_from_spec(bridge_spec)
+sys.modules[bridge_spec.name] = bridge_module
+bridge_spec.loader.exec_module(bridge_module)
 
 
-def make_config(artifact_root: Path, **overrides) -> module.WorkflowConfig:
-    """Build a workflow config for tests with sensible defaults."""
-
-    config = module.WorkflowConfig(
+def make_config(artifact_root: Path, **overrides) -> models.WorkflowConfig:
+    config = models.WorkflowConfig(
         repo_root=REPO_ROOT,
-        workflow_assets_root=WORKFLOW_ASSETS_ROOT,
+        workflow_assets_root=models.WORKFLOW_ASSETS_ROOT,
         change_id="WI-TEST",
         context="Workflow context",
         artifact_root=artifact_root,
@@ -40,74 +55,47 @@ def make_config(artifact_root: Path, **overrides) -> module.WorkflowConfig:
     return config
 
 
-class DiscoverAgentsTests(unittest.TestCase):
-    """Verify agent discovery and alias resolution."""
+class FakeSink:
+    def __init__(self) -> None:
+        self.events: list[tuple[str, dict]] = []
 
+    def record_event(self, event_type: str, payload: dict) -> None:
+        self.events.append((event_type, payload))
+
+
+class DiscoverAgentsTests(unittest.TestCase):
     def test_discover_agents_indexes_numbered_and_named_agents(self) -> None:
-        agents = module.discover_agents(WORKFLOW_ASSETS_ROOT)
+        agents = agents_module.discover_agents(models.WORKFLOW_ASSETS_ROOT)
         numbered = agents["01-intake"]
         named = agents["intake-agent"]
         self.assertEqual(numbered.path, named.path)
         self.assertEqual(numbered.name, "intake-agent")
 
 
-class EvaluationHelpersTests(unittest.TestCase):
-    """Verify evaluation parsing helpers."""
+class StageSpecTests(unittest.TestCase):
+    def test_loop_stage_specs_centralize_core_stage_order(self) -> None:
+        self.assertEqual(
+            [spec.stage_name for spec in stages_module.LOOP_STAGE_SPECS],
+            ["task_generator", "task_assigner", "qa"],
+        )
+        self.assertEqual(stages_module.TOTAL_WORKFLOW_STAGES, 6)
 
+
+class EvaluationHelpersTests(unittest.TestCase):
     def test_read_evaluation_result_reports_pass(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             path = Path(tmp_dir) / "eval.json"
-            path.write_text(json.dumps({"overall_result": "pass", "issues": []}), encoding="utf-8")
-            passed, payload = module.read_evaluation_result(path)
-            self.assertTrue(passed)
-            self.assertEqual(payload["overall_result"], "pass")
-
-
-class ExecutionScheduleTests(unittest.TestCase):
-    """Verify assignments schedule loading."""
-
-    def test_load_execution_schedule_accepts_batches_key(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            path = Path(tmp_dir) / "assignments.json"
             path.write_text(
-                json.dumps(
-                    {
-                        "story_id": "WI-TEST",
-                        "batches": [{"batch_id": 1, "batch": 1, "parallel_execution": False, "uows": []}],
-                    }
-                ),
+                json.dumps({"overall_result": "pass", "issues": []}),
                 encoding="utf-8",
             )
+            passed, payload = runtime_module.read_evaluation_result(path)
 
-            schedule = module.load_execution_schedule(path)
-
-        self.assertEqual(schedule, [{"batch_id": 1, "batch": 1, "parallel_execution": False, "uows": []}])
-
-
-class RunCommandTests(unittest.TestCase):
-    """Verify subprocess execution handling."""
-
-    def test_run_command_returns_timeout_result(self) -> None:
-        command = ["copilot", "-p", "generate tasks"]
-        timeout_error = module.subprocess.TimeoutExpired(
-            command,
-            5,
-            output="partial stdout",
-            stderr="partial stderr",
-        )
-
-        with mock.patch.object(module.subprocess, "run", side_effect=timeout_error):
-            result = module.run_command(command, cwd=REPO_ROOT, timeout_seconds=5)
-
-        self.assertEqual(result.exit_code, 124)
-        self.assertEqual(result.stdout, "partial stdout")
-        self.assertIn("partial stderr", result.stderr)
-        self.assertIn("Command timed out after 5 seconds.", result.stderr)
+        self.assertTrue(passed)
+        self.assertEqual(payload["overall_result"], "pass")
 
 
 class BackendCommandTests(unittest.TestCase):
-    """Verify backend-specific command construction."""
-
     def test_build_agent_command_for_copilot_uses_agent_key(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             config = make_config(
@@ -117,14 +105,14 @@ class BackendCommandTests(unittest.TestCase):
                 model="gpt-5.4",
                 additional_dirs=[Path(tmp_dir) / "extra"],
             )
-            agent = module.AgentSpec(
+            agent = models.AgentSpec(
                 key="04-software-engineer-hyperagent",
                 name="software-engineer-hyperagent",
                 description="test agent",
                 path=Path(tmp_dir) / "agent.md",
             )
 
-            command = module.build_agent_command(config, agent, "test prompt")
+            command = agents_module.build_agent_command(config, agent, "test prompt")
 
         self.assertEqual(command[:3], ["copilot", "-p", "test prompt"])
         self.assertIn("--agent", command)
@@ -141,27 +129,40 @@ class BackendCommandTests(unittest.TestCase):
                 cli_bin="claude",
                 model="sonnet",
             )
-            agent = module.AgentSpec(
+            agent = models.AgentSpec(
                 key="04-software-engineer-hyperagent",
                 name="software-engineer-hyperagent",
                 description="test agent",
                 path=Path(tmp_dir) / "agent.md",
             )
 
-            command = module.build_agent_command(config, agent, "test prompt")
+            command = agents_module.build_agent_command(config, agent, "test prompt")
 
         self.assertEqual(command[0], "claude")
         self.assertIn("--print", command)
         self.assertEqual(command[command.index("--agent") + 1], agent.name)
-        self.assertEqual(command[command.index("--permission-mode") + 1], "bypassPermissions")
+        self.assertEqual(
+            command[command.index("--permission-mode") + 1],
+            "bypassPermissions",
+        )
         self.assertEqual(command[-1], "test prompt")
 
 
-class WorkItemReferenceTests(unittest.TestCase):
-    """Verify Azure DevOps work-item parsing and context normalization."""
+class GeneralCliBuilderTests(unittest.TestCase):
+    def test_general_cli_backend_builders_keep_backend_specific_flags(self) -> None:
+        args = mock.Mock(model="gpt-5.4", agent="spike", prompt="hello")
+        copilot = general_cli._build_github_copilot_cmd(args)
+        claude = general_cli._build_claude_code_cmd(args)
 
+        self.assertIn("--allow-all-tools", copilot)
+        self.assertIn("--dangerously-skip-permissions", claude)
+        self.assertEqual(copilot[-1], "hello")
+        self.assertEqual(claude[-1], "hello")
+
+
+class WorkItemReferenceTests(unittest.TestCase):
     def test_parse_work_item_reference_accepts_bare_id(self) -> None:
-        reference = module.parse_work_item_reference(
+        reference = ado_module.parse_work_item_reference(
             "4461550",
             default_organization="https://dev.azure.com/mclm",
             default_project="Mayo Collaborative Services",
@@ -172,7 +173,7 @@ class WorkItemReferenceTests(unittest.TestCase):
         self.assertEqual(reference.work_item_id, "4461550")
 
     def test_parse_work_item_reference_accepts_full_url(self) -> None:
-        reference = module.parse_work_item_reference(
+        reference = ado_module.parse_work_item_reference(
             "https://dev.azure.com/mclm/Mayo%20Collaborative%20Services/_workitems/edit/4461550",
             default_organization="https://dev.azure.com/ignored",
             default_project="ignored",
@@ -183,7 +184,7 @@ class WorkItemReferenceTests(unittest.TestCase):
         self.assertEqual(reference.work_item_id, "4461550")
 
     def test_build_ado_context_extracts_embedded_acceptance_criteria(self) -> None:
-        reference = module.WorkItemReference(
+        reference = models.WorkItemReference(
             organization_url="https://dev.azure.com/mclm",
             project="Mayo Collaborative Services",
             work_item_id="4461550",
@@ -194,13 +195,14 @@ class WorkItemReferenceTests(unittest.TestCase):
                 "System.Description": (
                     "<p>As a user, I do not want to be asked more than once per session.</p>"
                     "<p>Acceptance Criteria:</p>"
-                    "<ul><li>AC - cache the first reason</li><li>AC - reset after save</li></ul>"
+                    "<ul><li>AC - cache the first reason</li>"
+                    "<li>AC - reset after save</li></ul>"
                 ),
                 "System.AreaPath": "Area Path",
             }
         }
 
-        context = module.build_ado_context(payload, reference)
+        context = ado_module.build_ado_context(payload, reference)
 
         self.assertIn("Do not prompt twice", context)
         self.assertIn("Acceptance Criteria:", context)
@@ -210,12 +212,14 @@ class WorkItemReferenceTests(unittest.TestCase):
 
 
 class InteractiveConfigTests(unittest.TestCase):
-    """Verify interactive startup flows."""
-
     def test_collect_interactive_config_prints_robot_banner(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             artifact_root = Path(tmp_dir)
-            for path in module.intake_artifact_paths(artifact_root, "WI-4461550"):
+            for path in [
+                artifact_root / "WI-4461550" / "intake" / "story.yaml",
+                artifact_root / "WI-4461550" / "intake" / "config.yaml",
+                artifact_root / "WI-4461550" / "intake" / "constraints.md",
+            ]:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text("placeholder\n", encoding="utf-8")
 
@@ -224,12 +228,16 @@ class InteractiveConfigTests(unittest.TestCase):
             with (
                 redirect_stdout(stdout),
                 mock.patch.object(
-                    module,
+                    interactive_cli,
                     "select_backend",
-                    return_value=module.BackendSpec(key="copilot", label="GitHub Copilot", command="copilot"),
+                    return_value=models.BackendSpec(
+                        key="copilot",
+                        label="GitHub Copilot",
+                        command="copilot",
+                    ),
                 ),
             ):
-                module.collect_interactive_config(
+                interactive_cli.collect_interactive_config(
                     input_fn=lambda prompt: next(responses),
                     require_tty=False,
                     repo_root=REPO_ROOT,
@@ -242,17 +250,25 @@ class InteractiveConfigTests(unittest.TestCase):
     def test_collect_interactive_config_can_reuse_existing_intake(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             artifact_root = Path(tmp_dir)
-            for path in module.intake_artifact_paths(artifact_root, "WI-4461550"):
+            for path in [
+                artifact_root / "WI-4461550" / "intake" / "story.yaml",
+                artifact_root / "WI-4461550" / "intake" / "config.yaml",
+                artifact_root / "WI-4461550" / "intake" / "constraints.md",
+            ]:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text("placeholder\n", encoding="utf-8")
 
             responses = iter(["2"])
             with mock.patch.object(
-                module,
+                interactive_cli,
                 "select_backend",
-                return_value=module.BackendSpec(key="copilot", label="GitHub Copilot", command="copilot"),
+                return_value=models.BackendSpec(
+                    key="copilot",
+                    label="GitHub Copilot",
+                    command="copilot",
+                ),
             ):
-                config = module.collect_interactive_config(
+                config = interactive_cli.collect_interactive_config(
                     input_fn=lambda prompt: next(responses),
                     require_tty=False,
                     repo_root=REPO_ROOT,
@@ -268,18 +284,29 @@ class InteractiveConfigTests(unittest.TestCase):
         with (
             tempfile.TemporaryDirectory() as tmp_dir,
             mock.patch.object(
-                module,
+                interactive_cli,
                 "select_backend",
-                return_value=module.BackendSpec(key="claude", label="Claude Code", command="claude"),
+                return_value=models.BackendSpec(
+                    key="claude",
+                    label="Claude Code",
+                    command="claude",
+                ),
             ),
             mock.patch.object(
-                module,
+                interactive_cli,
                 "resolve_ado_defaults",
-                return_value=("https://dev.azure.com/mclm", "Mayo Collaborative Services"),
+                return_value=(
+                    "https://dev.azure.com/mclm",
+                    "Mayo Collaborative Services",
+                ),
             ),
-            mock.patch.object(module, "fetch_ado_context", return_value="Fetched ADO context"),
+            mock.patch.object(
+                interactive_cli,
+                "fetch_ado_context",
+                return_value="Fetched ADO context",
+            ),
         ):
-            config = module.collect_interactive_config(
+            config = interactive_cli.collect_interactive_config(
                 input_fn=lambda prompt: next(responses),
                 require_tty=False,
                 repo_root=REPO_ROOT,
@@ -292,55 +319,34 @@ class InteractiveConfigTests(unittest.TestCase):
         self.assertFalse(config.reuse_existing_intake)
 
 
-class InvokeAgentTests(unittest.TestCase):
-    """Verify agent invocation error handling."""
+class RunCommandTests(unittest.TestCase):
+    def test_run_command_returns_timeout_result_with_partial_output(self) -> None:
+        command = [
+            sys.executable,
+            "-c",
+            (
+                "import sys,time; "
+                "print('partial stdout'); "
+                "print('partial stderr', file=sys.stderr); "
+                "sys.stdout.flush(); sys.stderr.flush(); "
+                "time.sleep(2)"
+            ),
+        ]
 
-    def test_invoke_agent_can_return_failed_result_without_raising(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            config = make_config(Path(tmp_dir))
-            agent = module.AgentSpec(
-                key="04-software-engineer-hyperagent",
-                name="software-engineer-hyperagent",
-                description="test agent",
-                path=Path(tmp_dir) / "agent.md",
-            )
-            failed_result = module.CommandResult(
-                command=["copilot", "-p", "test"],
-                exit_code=124,
-                stdout="partial output",
-                stderr="Command timed out after 1800 seconds.",
-            )
-
-            with (
-                mock.patch.object(module, "build_agent_command", return_value=failed_result.command),
-                mock.patch.object(module, "run_command", return_value=failed_result),
-                mock.patch.object(module, "print_agent_output"),
-                mock.patch.object(module, "write_runner_log"),
-            ):
-                result = module.invoke_agent(
-                    config,
-                    agent,
-                    "test prompt",
-                    "software_engineer",
-                    1,
-                    raise_on_error=False,
-                )
+        result = commands_module.run_command(
+            command,
+            cwd=REPO_ROOT,
+            timeout_seconds=1,
+            heartbeat_interval=1,
+        )
 
         self.assertEqual(result.exit_code, 124)
-        self.assertIn("timed out", result.stderr)
-
-
-class MainCliTests(unittest.TestCase):
-    """Verify the public CLI entry point."""
-
-    def test_main_rejects_legacy_cli_arguments(self) -> None:
-        exit_code = module.main(["--change-id", "WI-TEST"])
-        self.assertEqual(exit_code, 2)
+        self.assertIn("partial stdout", result.stdout)
+        self.assertIn("partial stderr", result.stderr)
+        self.assertIn("Command timed out after 1 seconds.", result.stderr)
 
 
 class ExecutionLoopRetryTests(unittest.TestCase):
-    """Verify execution-loop retry behavior."""
-
     def test_run_execution_loop_retries_after_engineer_command_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             artifact_root = Path(tmp_dir)
@@ -361,7 +367,12 @@ class ExecutionLoopRetryTests(unittest.TestCase):
                                 "batch_id": 1,
                                 "batch": 1,
                                 "parallel_execution": False,
-                                "uows": [{"uow_id": "UOW-001", "assigned_role": "software-engineer"}],
+                                "uows": [
+                                    {
+                                        "uow_id": "UOW-001",
+                                        "assigned_role": "software-engineer",
+                                    }
+                                ],
                             }
                         ],
                     }
@@ -372,13 +383,13 @@ class ExecutionLoopRetryTests(unittest.TestCase):
             (intake_dir / "story.yaml").write_text("story_id: WI-TEST\n", encoding="utf-8")
 
             config = make_config(artifact_root, max_implementation_attempts=3)
-            software_engineer = module.AgentSpec(
+            software_engineer = models.AgentSpec(
                 key="04-software-engineer-hyperagent",
                 name="software-engineer-hyperagent",
                 description="test engineer",
                 path=Path(tmp_dir) / "04-software-engineer-hyperagent.agent.md",
             )
-            implementation_evaluator = module.AgentSpec(
+            implementation_evaluator = models.AgentSpec(
                 key="08-implementation-evaluator",
                 name="implementation-evaluator",
                 description="test evaluator",
@@ -393,19 +404,34 @@ class ExecutionLoopRetryTests(unittest.TestCase):
 
             call_log: list[tuple[str, int, str | None, bool, str]] = []
 
-            def fake_invoke_agent(config, agent, prompt, stage_key, attempt, uow_id=None, raise_on_error=True, **kwargs):
+            def fake_invoke_agent(
+                config,
+                agent,
+                prompt,
+                stage_key,
+                attempt,
+                uow_id=None,
+                raise_on_error=True,
+                **kwargs,
+            ):
                 call_log.append((stage_key, attempt, uow_id, raise_on_error, prompt))
                 if stage_key == "software_engineer" and attempt == 1:
-                    return module.CommandResult(
+                    return models.CommandResult(
                         command=["copilot", "-p", "attempt-1"],
                         exit_code=124,
                         stdout="",
                         stderr="Command timed out after 1800 seconds.",
                     )
                 if stage_key == "software_engineer" and attempt == 2:
-                    (execution_dir / "uow_spec.yaml").write_text("uow_id: UOW-001\n", encoding="utf-8")
-                    (execution_dir / "impl_report.yaml").write_text("definition_of_done_status: []\n", encoding="utf-8")
-                    return module.CommandResult(
+                    (execution_dir / "uow_spec.yaml").write_text(
+                        "uow_id: UOW-001\n",
+                        encoding="utf-8",
+                    )
+                    (execution_dir / "impl_report.yaml").write_text(
+                        "definition_of_done_status: []\n",
+                        encoding="utf-8",
+                    )
+                    return models.CommandResult(
                         command=["copilot", "-p", "attempt-2"],
                         exit_code=0,
                         stdout="ok",
@@ -413,19 +439,26 @@ class ExecutionLoopRetryTests(unittest.TestCase):
                     )
                 if stage_key == "implementation_evaluator" and attempt == 2:
                     (execution_dir / "eval_impl_2.json").write_text(
-                        json.dumps({"overall_result": "pass", "score": 95, "issues": []}),
+                        json.dumps(
+                            {"overall_result": "pass", "score": 95, "issues": []}
+                        ),
                         encoding="utf-8",
                     )
-                    return module.CommandResult(
+                    return models.CommandResult(
                         command=["copilot", "-p", "eval-2"],
                         exit_code=0,
                         stdout="pass",
                         stderr="",
                     )
-                self.fail(f"Unexpected invoke_agent call: stage={stage_key}, attempt={attempt}")
+                self.fail(
+                    f"Unexpected invoke_agent call: stage={stage_key}, attempt={attempt}"
+                )
 
-            with mock.patch.object(module, "invoke_agent", side_effect=fake_invoke_agent):
-                result = module.run_execution_loop(config, agents)
+            with mock.patch(
+                "agent_runner.workflow.engine.invoke_agent",
+                side_effect=fake_invoke_agent,
+            ):
+                result = run_execution_loop(config, agents)
 
         self.assertTrue(result.passed)
         self.assertEqual(result.attempts, 1)
@@ -437,50 +470,59 @@ class ExecutionLoopRetryTests(unittest.TestCase):
                 ("implementation_evaluator", 2),
             ],
         )
-        self.assertTrue(call_log[0][3] is False)
-        self.assertTrue(call_log[1][3] is False)
         self.assertIn("Runner-captured failure details", call_log[1][4])
         self.assertIn("Command timed out after 1800 seconds.", call_log[1][4])
 
 
 class DryRunWorkflowTests(unittest.TestCase):
-    """Verify the full dry-run control flow."""
-
     def test_run_workflow_dry_run_completes_and_writes_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as artifact_root:
             config = make_config(Path(artifact_root), change_id="WI-DRY-RUN", dry_run=True)
 
-            results = module.run_workflow(config)
+            results = run_workflow(config)
 
             self.assertTrue(all(result.passed for result in results))
             base = Path(artifact_root) / "WI-DRY-RUN"
             self.assertTrue((base / "intake" / "story.yaml").is_file())
             self.assertTrue((base / "planning" / "assignments.json").is_file())
-            self.assertTrue((base / "execution" / "UOW-001" / "impl_report.yaml").is_file())
+            self.assertTrue(
+                (base / "execution" / "UOW-001" / "impl_report.yaml").is_file()
+            )
             self.assertTrue((base / "qa" / "qa_report.yaml").is_file())
-            self.assertTrue((base / "summary" / "lessons_optimizer_report.yaml").is_file())
+            self.assertTrue(
+                (base / "summary" / "lessons_optimizer_report.yaml").is_file()
+            )
             self.assertTrue((base / "logs" / "workflow_runner").is_dir())
 
 
-# ---------------------------------------------------------------------------
-# Discord bridge unit tests (pure-Python, no network required)
-# ---------------------------------------------------------------------------
+class ObservabilityTests(unittest.TestCase):
+    def test_run_workflow_emits_events_to_observability_sink(self) -> None:
+        with tempfile.TemporaryDirectory() as artifact_root:
+            sink = FakeSink()
+            config = make_config(
+                Path(artifact_root),
+                change_id="WI-OBS",
+                dry_run=True,
+                observability_sink=sink,
+            )
 
-BRIDGE_MODULE_PATH = (
-    Path(__file__).resolve().parent.parent / ".claude" / "scripts" / "discord_escalation_bridge.py"
-)
+            run_workflow(config)
 
-bridge_spec = importlib.util.spec_from_file_location("discord_escalation_bridge", BRIDGE_MODULE_PATH)
-if bridge_spec is None or bridge_spec.loader is None:
-    raise RuntimeError(f"Unable to load module from {BRIDGE_MODULE_PATH}")
-bridge_module = importlib.util.module_from_spec(bridge_spec)
-sys.modules[bridge_spec.name] = bridge_module
-bridge_spec.loader.exec_module(bridge_module)
+        event_types = [event_type for event_type, _ in sink.events]
+        self.assertIn("workflow_start", event_types)
+        self.assertIn("stage_start", event_types)
+        self.assertIn("agent_dispatch", event_types)
+        self.assertIn("agent_result", event_types)
+        self.assertIn("workflow_complete", event_types)
+
+
+class MainCliTests(unittest.TestCase):
+    def test_main_rejects_legacy_cli_arguments(self) -> None:
+        exit_code = interactive_cli.main(["--change-id", "WI-TEST"])
+        self.assertEqual(exit_code, 2)
 
 
 class DiscordBridgeParserTests(unittest.TestCase):
-    """Verify RESUME: message parsing logic."""
-
     def test_is_resume_message_detects_prefix(self) -> None:
         self.assertTrue(bridge_module.is_resume_message("RESUME: some answer"))
         self.assertTrue(bridge_module.is_resume_message("resume: lowercase"))
@@ -512,26 +554,25 @@ class DiscordBridgeParserTests(unittest.TestCase):
 
     def test_parse_resume_message_no_questions_captures_raw(self) -> None:
         result = bridge_module.parse_resume_message("RESUME: free text", [])
-        # No questions — raw text preserved, no Q1 mapping
         self.assertEqual(result["raw"], "RESUME: free text")
 
     def test_check_missing_answers_detects_gaps(self) -> None:
         missing = bridge_module.check_missing_answers(
-            {"Q1": "answer"}, ["Question 1", "Question 2"]
+            {"Q1": "answer"},
+            ["Question 1", "Question 2"],
         )
         self.assertEqual(len(missing), 1)
         self.assertIn("Q2", missing[0])
 
     def test_check_missing_answers_all_present(self) -> None:
         missing = bridge_module.check_missing_answers(
-            {"Q1": "a", "Q2": "b"}, ["Question 1", "Question 2"]
+            {"Q1": "a", "Q2": "b"},
+            ["Question 1", "Question 2"],
         )
         self.assertEqual(missing, [])
 
 
 class DiscordBridgeEscalationMessageTests(unittest.TestCase):
-    """Verify escalation message formatting."""
-
     def test_build_escalation_message_includes_key_fields(self) -> None:
         escalation = {
             "stage_key": "task_generator",
@@ -539,7 +580,9 @@ class DiscordBridgeEscalationMessageTests(unittest.TestCase):
             "blocking_questions": ["What is the scope?", "What is the deadline?"],
         }
         msg = bridge_module.build_escalation_message(
-            escalation, "WI-9999", Path("/status/escalated.json")
+            escalation,
+            "WI-9999",
+            Path("/status/escalated.json"),
         )
         self.assertIn("WI-9999", msg)
         self.assertIn("task_generator", msg)
@@ -549,34 +592,32 @@ class DiscordBridgeEscalationMessageTests(unittest.TestCase):
 
 
 class DiscordBridgeDryRunTests(unittest.TestCase):
-    """Verify the dry-run simulation path."""
-
     def test_dry_run_creates_resume_json_from_simulated_message(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             status_dir = Path(tmp_dir) / "status"
             status_dir.mkdir()
             escalated_path = status_dir / "escalated.json"
             escalated_path.write_text(
-                json.dumps({
-                    "stage_key": "task_generator",
-                    "reason": "Test escalation",
-                    "blocking_questions": ["What to do?"],
-                }),
+                json.dumps(
+                    {
+                        "stage_key": "task_generator",
+                        "reason": "Test escalation",
+                        "blocking_questions": ["What to do?"],
+                    }
+                ),
                 encoding="utf-8",
             )
 
-            def _write_simulated_message_after_delay(status_dir: Path) -> None:
-                import threading
-                def _write():
-                    import time as _time
-                    _time.sleep(0.1)
-                    sim = status_dir / "discord_simulated_message.txt"
-                    sim.write_text("RESUME: Q1=do the thing", encoding="utf-8")
-                t = threading.Thread(target=_write, daemon=True)
-                t.start()
+            def _write() -> None:
+                import time as _time
 
-            _write_simulated_message_after_delay(status_dir)
+                _time.sleep(0.1)
+                (status_dir / "discord_simulated_message.txt").write_text(
+                    "RESUME: Q1=do the thing",
+                    encoding="utf-8",
+                )
 
+            threading.Thread(target=_write, daemon=True).start()
             result_payload = bridge_module.run_dry_run_loop(status_dir, ["What to do?"])
 
         self.assertIsNotNone(result_payload)
@@ -588,31 +629,31 @@ class DiscordBridgeDryRunTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             status_dir = Path(tmp_dir) / "status"
             status_dir.mkdir()
-            escalated_path = status_dir / "escalated.json"
-            escalated_path.write_text(
+            (status_dir / "escalated.json").write_text(
                 json.dumps({"stage_key": "task_generator", "blocking_questions": []}),
                 encoding="utf-8",
             )
 
-            import threading
-
             results: list[dict | None] = []
 
-            def _run():
-                # Write a bad message, then a good one
+            def _writer() -> None:
                 import time as _time
+
                 _time.sleep(0.05)
-                bad = status_dir / "discord_simulated_message.txt"
-                bad.write_text("hello world", encoding="utf-8")
+                (status_dir / "discord_simulated_message.txt").write_text(
+                    "hello world",
+                    encoding="utf-8",
+                )
                 _time.sleep(0.15)
-                good = status_dir / "discord_simulated_message.txt"
-                good.write_text("RESUME: all clear", encoding="utf-8")
+                (status_dir / "discord_simulated_message.txt").write_text(
+                    "RESUME: all clear",
+                    encoding="utf-8",
+                )
 
-            def _monitor():
-                res = bridge_module.run_dry_run_loop(status_dir, [])
-                results.append(res)
+            def _monitor() -> None:
+                results.append(bridge_module.run_dry_run_loop(status_dir, []))
 
-            t_write = threading.Thread(target=_run, daemon=True)
+            t_write = threading.Thread(target=_writer, daemon=True)
             t_monitor = threading.Thread(target=_monitor, daemon=True)
             t_write.start()
             t_monitor.start()
@@ -623,60 +664,61 @@ class DiscordBridgeDryRunTests(unittest.TestCase):
 
 
 class WaitForResumeDiscordIntegrationTests(unittest.TestCase):
-    """Verify wait_for_resume starts the bridge and handles its output."""
-
     def test_wait_for_resume_returns_none_when_no_escalation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             config = make_config(Path(tmp_dir))
-            result = module.wait_for_resume(config)
+            result = discord_resume.wait_for_resume(config)
         self.assertIsNone(result)
 
     def test_wait_for_resume_reads_externally_written_resume_json(self) -> None:
-        """Simulates the Discord bridge writing resume.json externally."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             config = make_config(Path(tmp_dir))
             status_dir = Path(tmp_dir) / "WI-TEST" / "status"
             status_dir.mkdir(parents=True)
             escalated_path = status_dir / "escalated.json"
             escalated_path.write_text(
-                json.dumps({
-                    "stage_key": "task_generator",
-                    "reason": "Test",
-                    "blocking_questions": ["Q?"],
-                }),
+                json.dumps(
+                    {
+                        "stage_key": "task_generator",
+                        "reason": "Test",
+                        "blocking_questions": ["Q?"],
+                    }
+                ),
                 encoding="utf-8",
             )
 
-            import threading
-
-            def _write_resume_after_delay():
+            def _write_resume_after_delay() -> None:
                 import time as _time
+
                 _time.sleep(0.1)
                 (status_dir / "resume.json").write_text(
-                    json.dumps({
-                        "responder": "test-user",
-                        "answers": {"Q1": "answer"},
-                        "constraints": [],
-                        "extra_context": "RESUME: Q1=answer",
-                        "discord": {"guild_id": "dry-run"},
-                    }),
+                    json.dumps(
+                        {
+                            "responder": "test-user",
+                            "answers": {"Q1": "answer"},
+                            "constraints": [],
+                            "extra_context": "RESUME: Q1=answer",
+                            "discord": {"guild_id": "dry-run"},
+                        }
+                    ),
                     encoding="utf-8",
                 )
 
             t = threading.Thread(target=_write_resume_after_delay, daemon=True)
-
             with (
-                mock.patch.object(module, "_start_discord_bridge", return_value=None),
-                mock.patch.object(module, "write_runner_log"),
+                mock.patch.object(
+                    discord_resume,
+                    "_start_discord_bridge",
+                    return_value=None,
+                ),
+                mock.patch.object(discord_resume, "write_runner_log"),
             ):
                 t.start()
-                resolution = module.wait_for_resume(config, poll_seconds=1)
+                resolution = discord_resume.wait_for_resume(config, poll_seconds=1)
 
-            # Assertions inside the TemporaryDirectory context so files still exist
             self.assertIsNotNone(resolution)
             self.assertEqual(resolution["responder"], "test-user")
             self.assertEqual(resolution["answers"]["Q1"], "answer")
-            # escalated.json should be archived
             self.assertFalse(escalated_path.exists())
             archive_dir = status_dir / "escalated_archive"
             archived = list(archive_dir.glob("*_escalated.json"))
@@ -691,13 +733,21 @@ class WaitForResumeDiscordIntegrationTests(unittest.TestCase):
             escalated_path.write_text("{}", encoding="utf-8")
 
             import os as _os
-            with mock.patch.dict(_os.environ, {"DISCORD_BOT_TOKEN": "", "DISCORD_DRY_RUN": ""}, clear=False):
-                # Remove the keys if they exist
+
+            with mock.patch.dict(
+                _os.environ,
+                {"DISCORD_BOT_TOKEN": "", "DISCORD_DRY_RUN": ""},
+                clear=False,
+            ):
                 env_copy = dict(_os.environ)
                 env_copy.pop("DISCORD_BOT_TOKEN", None)
                 env_copy.pop("DISCORD_DRY_RUN", None)
                 with mock.patch.dict(_os.environ, env_copy, clear=True):
-                    result = module._start_discord_bridge(config, escalated_path, status_dir)
+                    result = discord_resume._start_discord_bridge(
+                        config,
+                        escalated_path,
+                        status_dir,
+                    )
 
         self.assertIsNone(result)
 

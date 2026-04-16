@@ -1,9 +1,17 @@
 # Agent Workflow Runner — Python dependencies
 #
-# No external PyPI packages are required for core operation.
-# The runner and Discord bridge use only the Python standard library.
+# Core operation remains standard-library only.
+# Python version: >= 3.9
 #
-# Python version:  >= 3.9
+# Optional Python package — richer observability:
+#
+#   langfuse
+#     pip install langfuse
+#     Enable with:
+#       AGENT_RUNNER_OBSERVABILITY=langfuse
+#       LANGFUSE_PUBLIC_KEY=...
+#       LANGFUSE_SECRET_KEY=...
+#       LANGFUSE_HOST=...   (optional)
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # External CLI tools (install separately — not managed by pip):
