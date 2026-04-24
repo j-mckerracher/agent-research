@@ -96,7 +96,7 @@ class EvaluationHelpersTests(unittest.TestCase):
 
 
 class BackendCommandTests(unittest.TestCase):
-    def test_build_agent_command_for_copilot_uses_agent_key(self) -> None:
+    def test_build_agent_command_for_copilot_uses_agent_name(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             config = make_config(
                 Path(tmp_dir),
@@ -116,7 +116,7 @@ class BackendCommandTests(unittest.TestCase):
 
         self.assertEqual(command[:3], ["copilot", "-p", "test prompt"])
         self.assertIn("--agent", command)
-        self.assertEqual(command[command.index("--agent") + 1], agent.key)
+        self.assertEqual(command[command.index("--agent") + 1], agent.name)
         self.assertIn("--allow-all", command)
         self.assertIn("--model", command)
         self.assertEqual(command[command.index("--model") + 1], "gpt-5.4")

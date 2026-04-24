@@ -75,6 +75,12 @@ CLONE_PREFIX = "CLONE:"
 HELP_PREFIX = "HELP:"
 VALID_BACKENDS = ("claude-code", "github-copilot")
 
+# Map Discord-side backend names to run_headless.py / run_general.py argparse values
+_BACKEND_MAP: dict[str, str] = {
+    "claude-code": "claude",
+    "github-copilot": "copilot",
+}
+
 DEFAULT_GENERAL_CHANNEL = "trigger-agents-general"
 
 GENERAL_HELP_MESSAGE = """\
@@ -303,6 +309,11 @@ def parse_trigger(content: str) -> tuple[str, str, str | None] | None:
     change_id = parts[0].strip()
     backend = parts[1].strip().lower() if len(parts) > 1 else ""
     repo_path = parts[2].strip() if len(parts) > 2 else None
+
+    # Handle swapped order: RUN: WI-XXXX /repo/path backend
+    if backend not in VALID_BACKENDS and repo_path and repo_path.lower() in VALID_BACKENDS:
+        backend, repo_path = repo_path.lower(), backend
+
     return change_id, backend, repo_path
 
 
@@ -405,6 +416,7 @@ def parse_general_trigger(content: str) -> dict | None:
 
 
 _RUNNER_SCRIPT_OVERRIDE: Path | None = None
+_AGENTS_DIR_OVERRIDE: Path | None = None
 
 
 def _runner_script_path() -> Path:
@@ -416,7 +428,7 @@ def _runner_script_path() -> Path:
 
 def _general_runner_script_path() -> Path:
     """Resolve run_general.py relative to this script."""
-    return Path(__file__).resolve().parent / "agent-runner" / "run_general.py"
+    return Path(__file__).resolve().parent.parent / "agent-runner" / "run_general.py"
 
 
 def run_workflow_subprocess(
@@ -431,15 +443,19 @@ def run_workflow_subprocess(
     Puts None into the queue when finished. Returns exit code.
     """
     script = _runner_script_path()
+    translated_backend = _BACKEND_MAP.get(backend, backend)
     cmd = [sys.executable, str(script), "--change-id", change_id]
     cmd += ["--repo", repo_path]
-    cmd += ["--backend", backend]
+    cmd += ["--backend", translated_backend]
     cmd += ["--output-json", str(output_json)]
+    if _AGENTS_DIR_OVERRIDE is not None:
+        cmd += ["--agents-dir", str(_AGENTS_DIR_OVERRIDE)]
 
     _log(f"Spawning: {' '.join(cmd)}")
 
     proc = subprocess.Popen(
         cmd,
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -1027,6 +1043,13 @@ def run_listener(
                 thread_id = str(thread["id"])
             except DiscordAPIError as exc:
                 _log(f"Could not create thread for {change_id}: {exc}")
+                try:
+                    post_message(
+                        token, trigger_channel_id,
+                        f"⚠️ Failed to start run for `{change_id}`: {exc}",
+                    )
+                except DiscordAPIError:
+                    pass
                 continue
 
             active_runs[change_id] = ActiveRun(change_id, thread_id)
@@ -1343,11 +1366,13 @@ def _launch_general_run(
     username: str,
 ) -> None:
     """Build and execute a general run subprocess, streaming output to Discord."""
-    cmd = [sys.executable, str(runner), "--backend", backend, "--prompt", prompt, "--repo", repo_path]
+    cmd = [sys.executable, str(runner), "--backend", _BACKEND_MAP.get(backend, backend), "--prompt", prompt, "--repo", repo_path]
     if model:
         cmd += ["--model", model]
     if agent:
         cmd += ["--agent", agent]
+    if _AGENTS_DIR_OVERRIDE is not None:
+        cmd += ["--agents-dir", str(_AGENTS_DIR_OVERRIDE)]
 
     try:
         ack = post_message(
@@ -1370,7 +1395,7 @@ def _launch_general_run(
     def _sub() -> None:
         try:
             proc = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+                cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
             )
             assert proc.stdout
             for line in proc.stdout:
@@ -1387,7 +1412,7 @@ def _launch_general_run(
 
 
 def main(argv: list[str] | None = None) -> int:
-    global _RUNNER_SCRIPT_OVERRIDE
+    global _RUNNER_SCRIPT_OVERRIDE, _AGENTS_DIR_OVERRIDE
 
     _init_file_logger()
 
@@ -1412,10 +1437,18 @@ def main(argv: list[str] | None = None) -> int:
         metavar="PATH",
         help="Absolute path to run_headless.py. Overrides the default relative resolution.",
     )
+    parser.add_argument(
+        "--agents-dir",
+        metavar="PATH",
+        help="Path to the agents directory passed to the runner scripts (e.g. /path/to/repo/.claude/agents).",
+    )
     args = parser.parse_args(argv)
 
     if args.runner_script:
         _RUNNER_SCRIPT_OVERRIDE = Path(args.runner_script).resolve()
+
+    if args.agents_dir:
+        _AGENTS_DIR_OVERRIDE = Path(args.agents_dir).resolve()
 
     token = os.environ.get("DISCORD_BOT_TOKEN", "").strip()
     if not token:

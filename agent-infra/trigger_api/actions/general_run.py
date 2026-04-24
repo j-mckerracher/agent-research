@@ -107,7 +107,10 @@ class GeneralRunHandler:
         """Blocking execution of run_general.py."""
         change_id = event.change_id
         repo = event.repo_path or self._default_repo
-        backend = event.backend or self._default_backend
+
+        _BACKEND_MAP = {"github-copilot": "copilot", "claude-code": "claude"}
+        raw_backend = event.backend or self._default_backend
+        backend = _BACKEND_MAP.get(raw_backend, raw_backend) if raw_backend else raw_backend
 
         if not backend:
             _log(f"Error: no backend specified for {change_id}")
@@ -150,6 +153,7 @@ class GeneralRunHandler:
 
         proc = subprocess.Popen(
             cmd,
+            stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

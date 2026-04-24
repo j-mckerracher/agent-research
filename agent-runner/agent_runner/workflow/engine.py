@@ -672,7 +672,7 @@ def run_workflow(config: WorkflowConfig) -> list[StageResult]:
 
     workflow_start = time.monotonic()
     ensure_artifact_dirs(config)
-    agents = discover_agents(config.workflow_assets_root)
+    agents = discover_agents(config.workflow_assets_root, agents_dir=config.agents_dir)
     results: list[StageResult] = []
 
     write_runner_log(

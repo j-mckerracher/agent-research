@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -25,10 +26,20 @@ from ..repo import resolve_repo_root
 from ..workflow.engine import format_summary, run_workflow
 
 
+def _materialize_agents(source_dir: Path, worktree_root: Path) -> None:
+    """Copy agent files from source_dir into <worktree_root>/.claude/agents/."""
+    dest_dir = worktree_root / ".claude" / "agents"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    for src in source_dir.glob("*.agent.md"):
+        shutil.copy2(src, dest_dir / src.name)
+    log("INFO", f"Materialized {len(list(source_dir.glob('*.agent.md')))} agent(s) → {dest_dir}")
+
+
 def build_headless_config(
     change_id: str,
     repo_root: Path,
     backend_key: str | None = None,
+    agents_dir: Path | None = None,
 ) -> WorkflowConfig:
     """Build a WorkflowConfig without interactive prompts."""
 
@@ -56,6 +67,7 @@ def build_headless_config(
         "cli_bin": backend.command,
         "model": backend.default_model,
         "observability_sink": build_observability_sink_from_env(),
+        "agents_dir": agents_dir,
     }
 
     normalized_id = normalize_change_id(change_id)
@@ -145,9 +157,16 @@ def main(argv: list[str] | None = None) -> int:
         help="Skip worktree creation and run directly in the main repo "
         "(legacy behaviour)",
     )
+    parser.add_argument(
+        "--agents-dir",
+        metavar="PATH",
+        help="Path to a directory of .agent.md files. Files are copied into "
+        "<worktree>/.claude/agents/ so Claude Code can discover them.",
+    )
     args = parser.parse_args(argv)
 
     main_repo_root = Path(args.repo).resolve() if args.repo else resolve_repo_root()
+    custom_agents_dir = Path(args.agents_dir).resolve() if args.agents_dir else None
 
     worktree_info: WorktreeInfo | None = None
     if not args.no_worktree:
@@ -160,12 +179,24 @@ def main(argv: list[str] | None = None) -> int:
 
     effective_repo_root = worktree_info.path if worktree_info else main_repo_root
 
+    if custom_agents_dir is not None:
+        if not custom_agents_dir.is_dir():
+            log("ERROR", f"--agents-dir does not exist: {custom_agents_dir}")
+            _write_error_json(
+                args.output_json,
+                f"--agents-dir not found: {custom_agents_dir}",
+                worktree_info=worktree_info,
+            )
+            return 1
+        _materialize_agents(custom_agents_dir, effective_repo_root)
+
     try:
         try:
             config = build_headless_config(
                 args.change_id,
                 effective_repo_root,
                 backend_key=args.backend,
+                agents_dir=custom_agents_dir,
             )
         except WorkflowError as exc:
             log("ERROR", f"Config error: {exc}")

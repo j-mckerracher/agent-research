@@ -35,10 +35,14 @@ def parse_frontmatter(text: str) -> dict[str, str]:
     return result
 
 
-def discover_agents(workflow_assets_root: Path) -> dict[str, AgentSpec]:
+def discover_agents(
+    workflow_assets_root: Path,
+    agents_dir: "Path | None" = None,
+) -> dict[str, AgentSpec]:
     """Discover custom agents and index them by file stem and frontmatter name."""
 
-    agents_dir = workflow_assets_root / "agents"
+    if agents_dir is None:
+        agents_dir = workflow_assets_root / "agents"
     if not agents_dir.is_dir():
         raise WorkflowError(f"Agent directory not found: {agents_dir}")
 
@@ -119,7 +123,7 @@ def build_agent_command(config: WorkflowConfig, agent: AgentSpec, prompt: str) -
             "-p",
             prompt,
             "--agent",
-            agent.key,
+            agent.name,
             "--allow-all",
             "--no-ask-user",
             "-s",

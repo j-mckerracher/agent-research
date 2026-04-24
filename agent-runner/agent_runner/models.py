@@ -56,6 +56,7 @@ class WorkflowConfig:
     additional_dirs: list[Path] = field(default_factory=list)
     reuse_existing_intake: bool = False
     observability_sink: Any | None = None
+    agents_dir: Path | None = None
 
 
 @dataclass(frozen=True)
